@@ -3,11 +3,10 @@ library(brms)
 library(bayestestR)
 
 ## general
-library(tidyverse)
+library(dplyr)
 
 ## plotting
 library(ggplot2)
-library(tidyverse)
 library(tidybayes)
 library(ggthemes)
 library(ggtext)

@@ -9,7 +9,7 @@ setwd("~/Dropbox (University of Oregon)/coast_bees_parasites")
 rm(list=ls())
 
 ## set to the number of cores you would like the models to run on
-ncores <- 3
+ncores <- 1
 
 load("data/spec_net_coast.Rdata")
 source("src/init.R")
@@ -27,6 +27,17 @@ table(spec.net$Year)
 ## Dryad. https://doi.org/10.5061/dryad.80gb5mkw1
 load("data/phylo.Rdata")
 
+## ## orthoganol polynomials
+DoyPoly <- poly(spec.net$DoyStart, degree=2)
+spec.net$DoyStartPoly1 <- round(DoyPoly[,'1'], 2)
+spec.net$DoyStartPoly2 <- round(DoyPoly[,'2'], 2)
+
+## parasite models only inlcude bombus and only species that were
+## screened, so put NA for other species to avoid weird
+## standardization
+spec.net$rare.degree[spec.net$Genus != "Bombus"] <- NA
+spec.net$MeanITD[spec.net$Genus != "Bombus"] <- NA
+
 ## **********************************************************
 ## formula for site effects on the bee community
 ## **********************************************************
@@ -37,14 +48,15 @@ load("data/phylo.Rdata")
 ## standardize the data at the correct level. 
 
 ## standardize by stand, year
-vars_year <- c("MeanCanopy",
-               "Elevation")
+vars_year <- c("MeanCanopy")
 
 ## standardize by stand, year, and sample round
-vars_year_sr<- c("DoyStart",
-               "TempCStart",
-               "VegAbundance",
-               "VegDiversity")
+vars_year_sr<- c(
+    "DoyStartPoly1",
+    "DoyStartPoly2",
+    "TempCStart",
+    "VegAbundance",
+    "VegDiversity")
 
 ## standardize by species
 vars_sp <- c("ForageDist_km")
@@ -54,14 +66,15 @@ vars_sp_yearsr <- c("rare.degree")
 
 ## variables to log but add 1 first (due to zeros)
 variables.to.log.p1 <- c(
-  "VegAbundance",
-  "BeeDiversity"
+    "VegAbundance",
+    "BeeDiversity",
+    "VegDiversity"
 )
 
 ## variables to log
 variables.to.log <- c(
-  "ForageDist_km",
-  "rare.degree"
+    "ForageDist_km",
+    "rare.degree"
 )
 
 ## create a dummy variable "Weight" to deal with the data sets being at
@@ -90,39 +103,37 @@ spec.net <- prepDataSEM(spec.net, variables.to.log, variables.to.log.p1,
 ## **********************************************************
 ## define all the formulas for the different parts of the models
 
-formula.flower.div <- formula(VegDiversity | weights(Weights) ~
-                                Year +
-                                  DoyStart + I(DoyStart^2) +
-                                  MeanCanopy +
-                                  I(MeanCanopy ^2) +
-                                  (1|Stand) 
+formula.flower.div <- formula(VegDiversity | subset(Weights) ~
+                                  Year +
+                                      DoyStartPoly1 + DoyStartPoly2 +
+                                      MeanCanopy +
+                                      (1|Stand) 
                               )
 
 ## flower abund with simpson div
-formula.flower.abund <- formula(VegAbundance | weights(Weights) ~
-                                  Year +
-                                    DoyStart + I(DoyStart^2) +
-                                    MeanCanopy +
-                                    I(MeanCanopy ^2) +
-                                    (1|Stand)
+formula.flower.abund <- formula(VegAbundance | subset(Weights) ~
+                                    Year +
+                                        DoyStartPoly1 + DoyStartPoly2 +
+                                        MeanCanopy +
+                                        (1|Stand)
                                 )
 
 ## **********************************************************
 ## Model 1.2: formula for forest effects on bee community
 ## **********************************************************
 
-formula.bee.div <- formula(BeeDiversity | weights(Weights)~
-                             VegDiversity +
-                               TempCStart +
-                               MeanCanopy +
-                               (1|Stand) 
+formula.bee.div <- formula(BeeDiversity | subset(Weights)~
+                               VegDiversity +
+                                   TempCStart +
+                                   MeanCanopy +
+                                   (1|Stand) 
                            )
 
-formula.bee.abund <- formula(BeeAbundance | weights(Weights)~
-                               VegAbundance +
-                                 TempCStart +
-                                 MeanCanopy +
-                                 (1|Stand)  
+formula.bee.abund <- formula(BeeAbundance | subset(Weights)~
+                                 VegAbundance +
+                                     TempCStart +
+                                     MeanCanopy +
+                                     (1|Stand)  
                              )
 
 ## **********************************************************
@@ -131,6 +142,7 @@ formula.bee.abund <- formula(BeeAbundance | weights(Weights)~
 
 xvars.coast <- c("BeeDiversity",
                  "BeeAbundance",
+                 "VegDiversity",
                  "ForageDist_km",
                  "rare.degree",
                  "(1|Stand)",
@@ -151,12 +163,13 @@ spec.net$WeightsPar[spec.net$Genus != "Bombus"] <- 0
 
 spec.net$GenusSpecies[!spec.net$GenusSpecies %in%
                       colnames(phylo_matrix)] <- "Bombus vosnesenskii"
+spec.net$GenusSpecies <- as.character(spec.net$GenusSpecies)
 
 formula.crithidia <-  runParasiteModels(spec.net, "bombus",
-                                       "HasCrithidia", xvars.coast)
+                                        "HasCrithidia", xvars.coast)
 
 bf.fdiv <- bf(formula.flower.div, family="student")
-bf.fabund <- bf(formula.flower.abund, family = "student")
+bf.fabund <- bf(formula.flower.abund, family = "gaussian")
 bf.bdiv <- bf(formula.bee.div, family="hurdle_lognormal")
 bf.babund <- bf(formula.bee.abund, family = "hurdle_poisson")
 
@@ -169,8 +182,8 @@ bform <-  bf.fdiv + bf.fabund + bf.babund + bf.bdiv + bf.par +
 fit.bombus <- brm(bform, spec.net,
                   cores=ncores,
                   iter = (10^4),
-                  chains =3,
-                  thin=1,
+                  chains =1,
+                  thin=3,
                   init=0,
                   open_progress = FALSE,
                   control = list(adapt_delta = 0.999,

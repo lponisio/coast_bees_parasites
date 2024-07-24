@@ -14,7 +14,7 @@ pstars <- function(x){
 
 
 write.ms.table <- function(mod.output, mod.name){
-    sum.mod <- as.data.frame(round(summary(mod.output)$fixed,2))
+    sum.mod <- as.data.frame(round(summary(mod.output)$fixed,5))
 
     coeffs <- c(paste0("b_",
                        rownames(sum.mod)),
@@ -36,7 +36,7 @@ write.ms.table <- function(mod.output, mod.name){
         sum(x > 0)/length(x)), 2)
 
     sum.mod$Plt0  <- round(apply(samps.mod, 2, function(x)
-        sum(x < 0)/length(x)),2)
+        sum(x < 0)/length(x)), 2)
 
     sum.mod$Pgt0Stars  <- sapply(sum.mod$Pgt0, pstars)
     sum.mod$Plt0Stars  <- sapply(sum.mod$Plt0, pstars)
