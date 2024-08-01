@@ -17,6 +17,7 @@ source("src/misc.R")
 source("src/writeResultsTable.R")
 source("src/runParasiteModels.R")
 source("src/standardize_weights.R")
+source("src/runPlotFreqModelDiagnostics.R")
 
 table(spec.net$Stand, spec.net$Year)
 table(spec.net$Year)
@@ -31,6 +32,14 @@ load("data/phylo.Rdata")
 DoyPoly <- poly(spec.net$DoyStart, degree=2)
 spec.net$DoyStartPoly1 <- round(DoyPoly[,'1'], 2)
 spec.net$DoyStartPoly2 <- round(DoyPoly[,'2'], 2)
+
+spec.net$MeanCanopyPoly1[!is.na(spec.net$MeanCanopy)] <-
+    round(poly(spec.net$MeanCanopy[!is.na(spec.net$MeanCanopy)],
+               degree=2)[,'1'], 2)
+
+spec.net$MeanCanopyPoly2[!is.na(spec.net$MeanCanopy)] <-
+    round(poly(spec.net$MeanCanopy[!is.na(spec.net$MeanCanopy)],
+               degree=2)[,'2'], 2)
 
 ## parasite models only inlcude bombus and only species that were
 ## screened, so put NA for other species to avoid weird
@@ -48,10 +57,10 @@ spec.net$MeanITD[spec.net$Genus != "Bombus"] <- NA
 ## standardize the data at the correct level. 
 
 ## standardize by stand, year
-vars_year <- c("MeanCanopy")
+vars_year <- c("MeanCanopyPoly1", "MeanCanopyPoly2")
 
 ## standardize by stand, year, and sample round
-vars_year_sr<- c(
+vars_year_sr <- c(
     "DoyStartPoly1",
     "DoyStartPoly2",
     "TempCStart",
@@ -89,7 +98,7 @@ table(spec.net$HasCrithidia[spec.net$Apidae==1], spec.net$Stand)
 ## ********************************************************
 ## log variables here
 ## ********************************************************
-orig.spec <- spec.net
+
 
 ## Make SEM weights and standardize data.
 spec.net <- prepDataSEM(spec.net, variables.to.log, variables.to.log.p1, 
@@ -98,23 +107,29 @@ spec.net <- prepDataSEM(spec.net, variables.to.log, variables.to.log.p1,
                         vars_sp=vars_sp,
                         vars_sp_yearsr=vars_sp_yearsr)
 
+spec.orig <- prepDataSEM(spec.net, variables.to.log,
+                         variables.to.log.p1,
+                         standardize=FALSE)
+
 ## **********************************************************
 ## Model 1.1: formula for forest effects on floral community
 ## **********************************************************
 ## define all the formulas for the different parts of the models
 
 formula.flower.div <- formula(VegDiversity | subset(Weights) ~
-                                  Year +
-                                      DoyStartPoly1 + DoyStartPoly2 +
-                                      MeanCanopy +
+                                  DoyStartPoly1 + DoyStartPoly2 +
+                                      MeanCanopyPoly1 +
+                                      MeanCanopyPoly2 +
+                                      Year + 
                                       (1|Stand) 
                               )
 
 ## flower abund with simpson div
 formula.flower.abund <- formula(VegAbundance | subset(Weights) ~
-                                    Year +
-                                        DoyStartPoly1 + DoyStartPoly2 +
-                                        MeanCanopy +
+                                    DoyStartPoly1 + DoyStartPoly2 +
+                                        MeanCanopyPoly1 +
+                                        MeanCanopyPoly2 +
+                                        Year +
                                         (1|Stand)
                                 )
 
@@ -125,7 +140,9 @@ formula.flower.abund <- formula(VegAbundance | subset(Weights) ~
 formula.bee.div <- formula(BeeDiversity | subset(Weights)~
                                VegDiversity +
                                    TempCStart +
-                                   MeanCanopy +
+                                   MeanCanopyPoly1 +
+                                   MeanCanopyPoly2 +
+                                   Year +
                                    (1|Stand) 
                            )
 
@@ -133,6 +150,9 @@ formula.bee.abund <- formula(BeeAbundance | subset(Weights)~
                                  VegAbundance +
                                      TempCStart +
                                      MeanCanopy +
+                                     Year +
+                                     MeanCanopyPoly1 +
+                                     MeanCanopyPoly2 +
                                      (1|Stand)  
                              )
 
@@ -178,6 +198,41 @@ bf.par <- bf(formula.crithidia, family="bernoulli")
 bform <-  bf.fdiv + bf.fabund + bf.babund + bf.bdiv + bf.par +
     set_rescor(FALSE)
 
+## **********************************************************
+## model assessment
+## **********************************************************
+## looks good
+run_plot_freq_model_diagnostics(remove_subset_formula(formula.flower.div),
+                                this_data=spec.net[spec.net$Weights == 1,],
+                                this_family="students")
+
+## looks great
+run_plot_freq_model_diagnostics(remove_subset_formula(formula.flower.abund),
+                                this_data=spec.net[spec.net$Weights == 1,],
+                                this_family="gaussian")
+
+## potentially an issue with homogeneity of variance, hard to say
+## because no support for checking hurdle models
+run_plot_freq_model_diagnostics(remove_subset_formula(formula.bee.div),
+                                this_data=spec.net[spec.net$Weights == 1,],
+                                this_family="lognormal")
+
+## potentially an issue with homogeneity of variance, hard to say
+## because no support for checking hurdle models
+run_plot_freq_model_diagnostics(remove_subset_formula(formula.bee.abund),
+                                this_data=spec.net[spec.net$Weights == 1,],
+                                this_family="hurdle_poisson")
+
+freq.formula <- as.formula(paste("HasCrithidia",
+                paste(xvars.coast[-length(xvars.coast)],
+                      collapse=" + "),
+                sep=" ~ "))
+run_plot_freq_model_diagnostics(freq.formula,
+                                this_data=spec.net[spec.net$WeightsPar == 1,],
+                                this_family="bernoulli")
+
+## **********************************************************
+
 ## run model
 fit.bombus <- brm(bform, spec.net,
                   cores=ncores,
@@ -193,7 +248,7 @@ fit.bombus <- brm(bform, spec.net,
                   )
 
 write.ms.table(fit.bombus, "Crithidia_allbee_coast")
-save(fit.bombus, spec.net, orig.spec,
+save(fit.bombus, spec.net, spec.orig,
      file="saved/CrithidiaFitAllBee_coast.Rdata")
 
 load(file="saved/CrithidiaFitAllBee_coast.Rdata")
