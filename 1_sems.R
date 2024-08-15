@@ -57,12 +57,11 @@ spec.net$MeanITD[spec.net$Genus != "Bombus"] <- NA
 ## standardize the data at the correct level. 
 
 ## standardize by stand, year
-vars_year <- c("MeanCanopyPoly1", "MeanCanopyPoly2")
+vars_year <- c("MeanCanopy")
 
 ## standardize by stand, year, and sample round
 vars_year_sr <- c(
-    "DoyStartPoly1",
-    "DoyStartPoly2",
+    "DoyStart",
     "TempCStart",
     "VegAbundance",
     "VegDiversity")
@@ -117,18 +116,17 @@ spec.orig <- prepDataSEM(spec.net, variables.to.log,
 ## define all the formulas for the different parts of the models
 
 formula.flower.div <- formula(VegDiversity | subset(Weights) ~
-                                  DoyStartPoly1 + DoyStartPoly2 +
-                                      MeanCanopyPoly1 +
-                                      MeanCanopyPoly2 +
+                                  DoyStart + I(DoyStart^2) +
+                                      MeanCanopy +
                                       Year + 
                                       (1|Stand) 
                               )
 
 ## flower abund with simpson div
 formula.flower.abund <- formula(VegAbundance | subset(Weights) ~
-                                    DoyStartPoly1 + DoyStartPoly2 +
-                                        MeanCanopyPoly1 +
-                                        MeanCanopyPoly2 +
+                                    DoyStart +  I(DoyStart^2) +
+                                        MeanCanopy +
+                                        I(MeanCanopy^2) +
                                         Year +
                                         (1|Stand)
                                 )
@@ -140,8 +138,7 @@ formula.flower.abund <- formula(VegAbundance | subset(Weights) ~
 formula.bee.div <- formula(BeeDiversity | subset(Weights)~
                                VegDiversity +
                                    TempCStart +
-                                   MeanCanopyPoly1 +
-                                   MeanCanopyPoly2 +
+                                   MeanCanopy +
                                    Year +
                                    (1|Stand) 
                            )
@@ -151,8 +148,6 @@ formula.bee.abund <- formula(BeeAbundance | subset(Weights)~
                                      TempCStart +
                                      MeanCanopy +
                                      Year +
-                                     MeanCanopyPoly1 +
-                                     MeanCanopyPoly2 +
                                      (1|Stand)  
                              )
 
@@ -198,38 +193,38 @@ bf.par <- bf(formula.crithidia, family="bernoulli")
 bform <-  bf.fdiv + bf.fabund + bf.babund + bf.bdiv + bf.par +
     set_rescor(FALSE)
 
-## **********************************************************
-## model assessment
-## **********************************************************
-## looks good
-run_plot_freq_model_diagnostics(remove_subset_formula(formula.flower.div),
-                                this_data=spec.net[spec.net$Weights == 1,],
-                                this_family="students")
+## ## **********************************************************
+## ## model assessment
+## ## **********************************************************
+## ## looks good
+## run_plot_freq_model_diagnostics(remove_subset_formula(formula.flower.div),
+##                                 this_data=spec.net[spec.net$Weights == 1,],
+##                                 this_family="students")
 
-## looks great
-run_plot_freq_model_diagnostics(remove_subset_formula(formula.flower.abund),
-                                this_data=spec.net[spec.net$Weights == 1,],
-                                this_family="gaussian")
+## ## looks great
+## run_plot_freq_model_diagnostics(remove_subset_formula(formula.flower.abund),
+##                                 this_data=spec.net[spec.net$Weights == 1,],
+##                                 this_family="gaussian")
 
-## potentially an issue with homogeneity of variance, hard to say
-## because no support for checking hurdle models
-run_plot_freq_model_diagnostics(remove_subset_formula(formula.bee.div),
-                                this_data=spec.net[spec.net$Weights == 1,],
-                                this_family="lognormal")
+## ## potentially an issue with homogeneity of variance, hard to say
+## ## because no support for checking hurdle lognormal  models
+## run_plot_freq_model_diagnostics(remove_subset_formula(formula.bee.div),
+##                                 this_data=spec.net[spec.net$Weights == 1,],
+##                                 this_family="lognormal")
 
-## potentially an issue with homogeneity of variance, hard to say
-## because no support for checking hurdle models
-run_plot_freq_model_diagnostics(remove_subset_formula(formula.bee.abund),
-                                this_data=spec.net[spec.net$Weights == 1,],
-                                this_family="hurdle_poisson")
+## ## potentially an issue with homogeneity of variance, hard to say
+## ## because no support for checking hurdle models
+## run_plot_freq_model_diagnostics(remove_subset_formula(formula.bee.abund),
+##                                 this_data=spec.net[spec.net$Weights == 1,],
+##                                 this_family="hurdle_poisson")
 
-freq.formula <- as.formula(paste("HasCrithidia",
-                paste(xvars.coast[-length(xvars.coast)],
-                      collapse=" + "),
-                sep=" ~ "))
-run_plot_freq_model_diagnostics(freq.formula,
-                                this_data=spec.net[spec.net$WeightsPar == 1,],
-                                this_family="bernoulli")
+## freq.formula <- as.formula(paste("HasCrithidia",
+##                                  paste(xvars.coast[-length(xvars.coast)],
+##                                        collapse=" + "),
+##                                  sep=" ~ "))
+## run_plot_freq_model_diagnostics(freq.formula,
+##                                 this_data=spec.net[spec.net$WeightsPar == 1,],
+##                                 this_family="bernoulli")
 
 ## **********************************************************
 
