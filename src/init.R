@@ -4,6 +4,7 @@ library(bayestestR)
 
 ## general
 library(dplyr)
+library(tidyverse)
 
 ## plotting
 library(ggplot2)
