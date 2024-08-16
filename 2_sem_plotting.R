@@ -14,18 +14,16 @@ rm(list=ls())
 source("src/ggplotThemes.R")
 source("src/init.R")
 source("src/misc.R")
-library(tidyverse)
 
 ## load model results and data
 load(file="saved/CrithidiaFitAllBee_coast.Rdata")
 
 ## ***********************************************************************
-## scatterplot of canopy cover v. dbh, separated by thins 
+## scatterplot of canopy cover and dbh, highlighting thins 
 ## ***********************************************************************
-# have to do this before centering variables below 
+
 stands <- spec.orig[!duplicated(spec.orig$StandRoundYear), ]
 
-#plot w thins highlighted
 standsplot <- stands %>% 
   ggplot(aes(x=DomTreeDiam_cm, y=MeanCanopy, color=ThinStatus)) +
   geom_point() + 
@@ -49,14 +47,12 @@ ggsave(standsplot, file="figures/canopyDBH.pdf",
 ## descriptive bar charts
 ## ***********************************************************************
 
-#binning by canopy 
+#binning canopy - remember that canopy is unintuitive and 0-25 is lowest
 spec.orig$CanopyBin <- cut(spec.orig$MeanCanopy,
                      breaks = c(0, 25, 75, 100), 
                      include.lowest = T, right = F)
-#reminder 2 self that canopy is unintuitive and 0-25 is actually lowest
 
-
-#veg abundance stats 
+#veg abundance summary by canopy type 
 spec.orig <- spec.orig[!is.na(spec.orig$CanopyBin),]
 
 stats <- spec.orig %>% 
@@ -72,7 +68,7 @@ stats2 <- spec.orig.2 %>%
   summarise(meanveg =mean(VegAbundance),
             sdveg = sd(VegAbundance)) 
 
-#bee mean and sd by type 
+#bee diversity summary by canopy type 
 stats <- spec.orig %>% 
   group_by(ThinStatus) %>% 
   summarise(meanbee =mean(BeeDiversity),
@@ -83,61 +79,18 @@ stats2 <- spec.orig.2 %>%
   summarise(meanbee =mean(BeeDiversity),
             sdbee = sd(BeeDiversity)) 
 
-
-####bee genus bars
-spec.orig <- spec.orig %>%
-  filter(Genus == 'Bombus')
-# 
-# #need to summarize flowers per n type of stand in each category
-# #find stands per stand type 
+##summarize flowers per n type of stand in each category
+##find stands per stand type 
 # standstype <- spec.orig %>% 
 #   group_by(age, PlantGenusSpecies) %>% 
 #   summarise(count = n())
-# #only 61 stands?? 
 # 
-# #bees per stand type
+##bees per stand type
 # beesper <- spec.orig %>% 
 #   group_by(age, GenusSpecies) %>% 
 #   summarise(count = n())
-# 
-# 
-# #modifying to show prop of total
-# bombus.spp.bar <- ggplot(summary, 
-#                          aes(y = fct_reorder(GenusSpecies, avg, .desc = TRUE),
-#                              x = avg)) + 
-#   geom_bar(stat = 'identity',
-#            aes(fill = factor(age)), position = "dodge") +
-#   scale_fill_manual(values=c('darkgreen', 'gold', 'lightblue'),
-#                     name = "Canopy closure", 
-#                     labels=c('Closed', 'Intermediate', 'Open')) +
-#   theme_classic() +
-#   theme(axis.text.y = element_text(angle = 0, hjust = 1, 
-#                                    face ='italic', color = 'black'),
-#         axis.title.y = element_text(size=14),
-#         axis.title.x = element_text(size=14),
-#         text = element_text(size=14)) +
-#   labs(y=expression(paste('Species')), x='Average individuals 
-#        collected per stand type')
-# 
-# bombus.spp.bar
-# 
-# 
-# ggsave(bombus.spp.bar, file="figures/bombusSppbar.pdf",
-#        height=5, width=7.5)
-
-
-#ok nevermind let's try canopy and not treediam actually. binning... 
-spec.orig$CanopyBin <- cut(spec.orig$MeanCanopy,
-                     breaks = c(0, 25, 75, 100), 
-                     include.lowest = T, right = F)
-#reminder 2 self that canopy is unintuitive and 0-25 is closed
 
 spec.orig <- spec.orig[!is.na(spec.orig$CanopyBin),]
-
-####bee genus bars
-spec.orig <- spec.orig %>%
-  filter(Genus == 'Bombus')
-
 
 #per canopy type mean and sd of veg abund/diversity
 closed <- spec.orig[spec.orig$CanopyBin %in% c("[0,25)"),]
@@ -145,19 +98,64 @@ intermed <- spec.orig[spec.orig$CanopyBin %in% c("[25,75)"),]
 open <- spec.orig[spec.orig$CanopyBin %in% c("[75,100]"),]
 
 
-#need to summarize individuals per n type of stand in each category
+####bee genus bars
+
+#summarize individuals per n type of stand in each category
 standstype <- spec.orig %>% 
   group_by(CanopyBin) %>% 
   summarise(count = n_distinct(Stand))
 
 beesper <- spec.orig %>% 
-  group_by(CanopyBin, GenusSpecies) %>% 
+  group_by(CanopyBin, Genus) %>% 
   summarise(count = n())
 
 summary <- beesper %>% 
   left_join(standstype, by="CanopyBin") %>% 
   mutate(avg = count.x/count.y) 
 
+## ***********************************************************************
+## all bee genus bar graph
+## ***********************************************************************
+
+#modifying to show prop of total
+bee.spp.bar <- ggplot(summary, 
+                         aes(y = fct_reorder(Genus, avg, .desc = TRUE),
+                             x = avg)) + 
+  geom_bar(stat = 'identity',
+           aes(fill = factor(CanopyBin)), position = "dodge") +
+  scale_fill_manual(values=c('#004D40', '#FFC107', 'lightblue'),
+                    name = "Canopy closure", 
+                    labels=c('Closed', 'Intermediate', 'Open')) +
+  theme_classic() +
+  theme(axis.text.y = element_text(angle = 0, hjust = 1, 
+                                   face ='italic', color = 'black'),
+        axis.text.x = element_text(color="black"),
+        axis.title.y = element_text(size=14),
+        axis.title.x = element_text(size=14),
+        axis.ticks = element_line(color = "black"),
+        text = element_text(size=14)) +
+  labs(y=expression(paste('Genus')), x='Average individuals
+       collected per canopy type')
+
+bee.spp.bar
+
+ggsave(bee.spp.bar, file="figures/beeSppbar.pdf",
+       height=3, width=5)
+
+## ***********************************************************************
+## bombus species bar graph
+## ***********************************************************************
+
+bomb.orig <- spec.orig %>%
+  filter(Genus == 'Bombus')
+
+beesper <- bomb.orig %>% 
+  group_by(CanopyBin, GenusSpecies) %>% 
+  summarise(count = n())
+
+summary <- beesper %>% 
+  left_join(standstype, by="CanopyBin") %>% 
+  mutate(avg = count.x/count.y) 
 
 #modifying to show prop of total
 bombus.spp.bar <- ggplot(summary, 
@@ -184,7 +182,6 @@ bombus.spp.bar
 ggsave(bombus.spp.bar, file="figures/bombusSppbar.pdf",
        height=3, width=5)
 
-#plant stats 
 
 #plants per stand type
 # plantsper <- spec.orig %>% 
@@ -212,9 +209,8 @@ ggsave(bombus.spp.bar, file="figures/bombusSppbar.pdf",
 # 
 # plant.spp.bar
 # 
-
 # 
-# #this vers shows total collected and not per stand 
+# #total bees collected (not per stand)
 # bombus.tot.bar <- ggplot(spec.orig, aes(y = fct_infreq(GenusSpecies))) + 
 #   geom_bar(stat = 'count',
 #            aes(fill = factor(age)), position = "dodge") +
@@ -272,11 +268,8 @@ parasite.hist <- parasite.count.table %>%
 
 parasite.hist
 
-#for geom text count: 1, 7, 18, 32, 54, 55, 149
-
 ggsave(parasite.hist, file="figures/coastparasiteSppHist.pdf",
        height=3, width=5)
-
 
 ## ***********************************************************************
 ## prepping for newdata draws 
@@ -326,19 +319,19 @@ veg.div.stand <- ggplot(pred_fldiv, aes(x = MeanCanopy,
   theme_ms() +
   geom_point(data=new.net,
              aes(x=MeanCanopy, y=VegDiversity, color = ThinStatus), cex=2) +
-  scale_color_manual(values=c("#000000","#999999")) #+
+  scale_color_manual(values=c("#000000","#999999")) +
   # scale_x_continuous(
   #   labels = labs.fl.div,
   #   breaks = axis.fl.div) +
-  # scale_y_continuous(
-  #   labels = y.lab.fl.div,
-  #   breaks = y.axis.fl.div
+  scale_y_continuous(breaks = log(pretty(exp(new.orig$VegDiversity))),
+                     labels = pretty(exp(new.orig$VegDiversity)))
 #  )
 
 veg.div.stand
 
-ggsave(veg.div.stand, file="figures/vegdiv_stand.pdf",
-       height=4, width=5)
+# JFB check colors, grey/black, and logs for graphs 
+# ggsave(veg.div.stand, file="figures/vegdiv_stand.pdf",
+#        height=4, width=5)
 
 ## ***********************************************************************
 ## mean canopy and floral abundance
