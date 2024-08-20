@@ -28,19 +28,6 @@ table(spec.net$Year)
 ## Dryad. https://doi.org/10.5061/dryad.80gb5mkw1
 load("data/phylo.Rdata")
 
-## ## orthoganol polynomials
-DoyPoly <- poly(spec.net$DoyStart, degree=2)
-spec.net$DoyStartPoly1 <- round(DoyPoly[,'1'], 2)
-spec.net$DoyStartPoly2 <- round(DoyPoly[,'2'], 2)
-
-spec.net$MeanCanopyPoly1[!is.na(spec.net$MeanCanopy)] <-
-    round(poly(spec.net$MeanCanopy[!is.na(spec.net$MeanCanopy)],
-               degree=2)[,'1'], 2)
-
-spec.net$MeanCanopyPoly2[!is.na(spec.net$MeanCanopy)] <-
-    round(poly(spec.net$MeanCanopy[!is.na(spec.net$MeanCanopy)],
-               degree=2)[,'2'], 2)
-
 ## parasite models only inlcude bombus and only species that were
 ## screened, so put NA for other species to avoid weird
 ## standardization
@@ -98,6 +85,10 @@ table(spec.net$HasCrithidia[spec.net$Apidae==1], spec.net$Stand)
 ## log variables here
 ## ********************************************************
 
+spec.orig <- prepDataSEM(spec.net, variables.to.log,
+                         variables.to.log.p1,
+                         standardize=FALSE)
+
 
 ## Make SEM weights and standardize data.
 spec.net <- prepDataSEM(spec.net, variables.to.log, variables.to.log.p1, 
@@ -105,10 +96,6 @@ spec.net <- prepDataSEM(spec.net, variables.to.log, variables.to.log.p1,
                         vars_year=vars_year,
                         vars_sp=vars_sp,
                         vars_sp_yearsr=vars_sp_yearsr)
-
-spec.orig <- prepDataSEM(spec.net, variables.to.log,
-                         variables.to.log.p1,
-                         standardize=FALSE)
 
 ## **********************************************************
 ## Model 1.1: formula for forest effects on floral community
