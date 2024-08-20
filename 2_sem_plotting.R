@@ -302,9 +302,11 @@ pred_fldiv <- fit.bombus %>%
 labs.fl.div <- (pretty(c(0, new.orig$MeanCanopy), n=8))
 axis.fl.div <- (pretty(c(0, new.orig$MeanCanopy), n=8))
 
-y.lab.fl.div <- (pretty(c(0, new.orig$VegDiversity), n=5))
+
+y.lab.fl.div <- (pretty(exp(new.orig$VegDiversity), n=10))
 y.axis.fl.div <- standardize.axis(y.lab.fl.div,
-                                  new.orig$VegDiversity)
+                                 exp(new.orig$VegDiversity))
+
 
 veg.div.stand <- ggplot(pred_fldiv, aes(x = MeanCanopy,
                                         y = .epred)) +
@@ -320,18 +322,17 @@ veg.div.stand <- ggplot(pred_fldiv, aes(x = MeanCanopy,
   geom_point(data=new.net,
              aes(x=MeanCanopy, y=VegDiversity, color = ThinStatus), cex=2) +
   scale_color_manual(values=c("#000000","#999999")) +
-  # scale_x_continuous(
-  #   labels = labs.fl.div,
-  #   breaks = axis.fl.div) +
-  scale_y_continuous(breaks = log(pretty(exp(new.orig$VegDiversity))),
-                     labels = pretty(exp(new.orig$VegDiversity)))
-#  )
+  scale_x_continuous(
+    labels = labs.fl.div,
+    breaks = axis.fl.div) +
+  scale_y_continuous(
+    labels = y.lab.fl.div,
+    breaks = y.axis.fl.div) 
 
 veg.div.stand
 
-# JFB check colors, grey/black, and logs for graphs 
-# ggsave(veg.div.stand, file="figures/vegdiv_stand.pdf",
-#        height=4, width=5)
+ggsave(veg.div.stand, file="figures/vegdiv_stand.pdf",
+       height=4, width=5)
 
 ## ***********************************************************************
 ## mean canopy and floral abundance
@@ -340,9 +341,12 @@ veg.div.stand
 labs.fl.ab <- (pretty(c(0, new.orig$MeanCanopy), n=8))
 axis.fl.ab <-  (pretty(c(0, new.orig$MeanCanopy), n=8))
 
-y.labs.fl.ab <- (pretty(c(0, new.orig$VegAbundance), n=5))
+y.labs.fl.ab <- (pretty(exp(new.orig$VegAbundance), n=10))
 y.axis.fl.ab <- standardize.axis(y.labs.fl.ab,
-                                 new.orig$VegAbundance)
+                                 exp(new.orig$VegAbundance))
+
+breaks = log(pretty(exp(new.orig$VegAbundance), 10)),
+#                    labels = pretty(exp(new.orig$VegAbundance), 10)) 
 
 newdata.fl.ab <- tidyr::crossing(MeanCanopy =
                                    seq(min(new.net$MeanCanopy, na.rm=TRUE),
@@ -364,12 +368,6 @@ flower.ab.stand <- ggplot(pred_flab, aes(x = MeanCanopy,
                                          y = .epred)) +
   stat_lineribbon() +
   scale_fill_brewer(palette = "Blues") +
-  scale_x_continuous(
-    breaks = axis.fl.ab,
-    labels = labs.fl.ab) +
-  scale_y_continuous(
-    breaks = y.axis.fl.ab,
-    labels = y.labs.fl.ab) +
   labs(y = str_wrap("Flowering plant abundance (log)", width =20),
        x = "Canopy openness",
        fill = "Credible interval") +
@@ -380,8 +378,13 @@ flower.ab.stand <- ggplot(pred_flab, aes(x = MeanCanopy,
   theme_ms() +
   geom_point(data=new.net,
              aes(x=MeanCanopy, y=VegAbundance, color = ThinStatus), cex=2) +
-  scale_color_manual(values=c("#000000","#999999")) 
-
+  scale_color_manual(values=c("#000000","#999999")) +
+  scale_x_continuous(
+    breaks = axis.fl.ab,
+    labels = labs.fl.ab) +
+  scale_y_continuous(
+    breaks = y.axis.fl.ab,
+    labels = y.labs.fl.ab)
 flower.ab.stand
 
 ##ggsave(flower.ab.stand, file="figures/vegabund_stand.pdf",
@@ -639,7 +642,7 @@ pred_beediv <- fit.bombus %>%
 bombus.div.canopy <- ggplot(pred_beediv, aes(x = MeanCanopy,
                                              y = .epred)) +
   stat_lineribbon() +
-  scale_fill_brewer(palette = 'Greys') +
+  scale_fill_brewer(palette = 'Blues') +
   labs(x = "Canopy openness", y = "Bee diversity",
        fill = "Credible interval") +
   theme(legend.position = "bottom")  +
@@ -691,7 +694,7 @@ pred_beeab <- fit.bombus %>%
 bee.ab.canopy <- ggplot(pred_beeab, aes(x = MeanCanopy,
                                            y = .epred)) +
   stat_lineribbon() +
-  scale_fill_brewer(palette="Greys") +
+  scale_fill_brewer(palette="Blues") +
   labs(x = "Canopy openness", y = "Bee abundance",
        fill = "Credible interval") +
   theme(legend.position = "bottom")  +
