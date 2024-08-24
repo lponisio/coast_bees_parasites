@@ -303,7 +303,7 @@ labs.fl.div <- (pretty(c(0, new.orig$MeanCanopy), n=8))
 axis.fl.div <- (pretty(c(0, new.orig$MeanCanopy), n=8))
 
 
-y.lab.fl.div <- (pretty(exp(new.orig$VegDiversity), n=10))
+y.lab.fl.div <- (pretty(exp(new.orig$VegDiversity), n=5))
 y.axis.fl.div <- standardize.axis(y.lab.fl.div,
                                  exp(new.orig$VegDiversity))
 
@@ -345,9 +345,6 @@ y.labs.fl.ab <- (pretty(exp(new.orig$VegAbundance), n=10))
 y.axis.fl.ab <- standardize.axis(y.labs.fl.ab,
                                  exp(new.orig$VegAbundance))
 
-breaks = log(pretty(exp(new.orig$VegAbundance), 10)),
-#                    labels = pretty(exp(new.orig$VegAbundance), 10)) 
-
 newdata.fl.ab <- tidyr::crossing(MeanCanopy =
                                    seq(min(new.net$MeanCanopy, na.rm=TRUE),
                                        max(new.net$MeanCanopy, na.rm=TRUE),
@@ -368,7 +365,7 @@ flower.ab.stand <- ggplot(pred_flab, aes(x = MeanCanopy,
                                          y = .epred)) +
   stat_lineribbon() +
   scale_fill_brewer(palette = "Blues") +
-  labs(y = str_wrap("Flowering plant abundance (log)", width =20),
+  labs(y = str_wrap("Flowering plant abundance", width =20),
        x = "Canopy openness",
        fill = "Credible interval") +
   theme(legend.position = "bottom")  +
@@ -385,6 +382,7 @@ flower.ab.stand <- ggplot(pred_flab, aes(x = MeanCanopy,
   scale_y_continuous(
     breaks = y.axis.fl.ab,
     labels = y.labs.fl.ab)
+
 flower.ab.stand
 
 ##ggsave(flower.ab.stand, file="figures/vegabund_stand.pdf",
@@ -397,9 +395,9 @@ flower.ab.stand
 labs.fl.ab <- (pretty(c(0, new.orig$MeanCanopy), n=8))
 axis.fl.ab <-  (pretty(c(0, new.orig$MeanCanopy), n=8))
 
-# y.labs.fl.ab <- (pretty(c(0, new.orig$BeeAbundance), n=5))
-# y.axis.fl.ab <- standardize.axis(y.labs.fl.ab,
-#                                  new.orig$BeeAbundance)
+y.labs.bdiv <- (pretty(c(0, new.orig$BeeDiversity), n=10))
+y.axis.bdiv <- standardize.axis(y.labs.bdiv,
+                                 new.orig$BeeDiversity)
 
 newdata.bee.div <- tidyr::crossing(MeanCanopy =
                                      seq(min(new.net$MeanCanopy, na.rm=TRUE),
@@ -427,9 +425,9 @@ bee.div.stand <- ggplot(pred_beediv, aes(x = MeanCanopy,
   scale_x_continuous(
     breaks = axis.fl.ab,
     labels = labs.fl.ab) +
-  # scale_y_continuous(
-  #   breaks = y.axis.fl.ab,
-  #   labels = y.labs.fl.ab) +
+  scale_y_continuous(
+    breaks = y.axis.bdiv,
+    labels = y.labs.bdiv) +
   labs(y = str_wrap("Bee Diversity", width =20),
        x = "Canopy openness",
        fill = "Credible interval") +
@@ -564,7 +562,13 @@ ggsave(bee.div.plant, file="figures/beediv_veg.pdf",
 
 #setting axis manually
 labs.bee.ab <- (pretty(c(0, new.orig$VegAbundance), n=8))
-axis.bee.ab <- c(0:10)
+axis.bee.ab <- standardize.axis(labs.bee.ab,
+                                    new.orig$VegAbundance)
+                            
+# y.labs.fl.ab <- (pretty(exp(new.orig$VegAbundance), n=10))
+# y.axis.fl.ab <- standardize.axis(y.labs.fl.ab,
+#                                  exp(new.orig$VegAbundance))
+
 
 newdata.beeab <- tidyr::crossing(VegAbundance =
                                    seq(min(new.net$VegAbundance, na.rm=TRUE),
@@ -615,9 +619,13 @@ ggsave(bee.ab.plant, file="figures/bombusabund_plant.pdf",
 # canopy and bee diversity
 # ***********************************************************************
 
-labs.bee.div <- (pretty(new.orig$MeanCanopy, n=8))
-axis.bee.div <-  standardize.axis(labs.bee.div,
-                                  new.orig$MeanCanopy)
+
+labs.bee.div <- (pretty(c(0, new.orig$MeanCanopy), n=8))
+axis.bee.div <-  (pretty(c(0, new.orig$MeanCanopy), n=8))
+# 
+# labs.bee.div <- (pretty(new.orig$MeanCanopy, n=8))
+# axis.bee.div <-  standardize.axis(labs.bee.div,
+#                                   new.orig$MeanCanopy)
 
 newdata.beediv <- tidyr::crossing(MeanCanopy =
                                     seq(min(new.net$MeanCanopy, na.rm=TRUE),
@@ -631,7 +639,9 @@ newdata.beediv <- tidyr::crossing(MeanCanopy =
                                   VegAbundance = mean(new.net$VegAbundance, na.rm=TRUE),
                                   VegDiversity = mean(new.net$VegDiversity, na.rm=TRUE),
                                   TempCStart = mean(new.net$TempCStart, na.rm=TRUE),
-                                  ForageDist_km = mean(new.net$ForageDist_km, na.rm=TRUE)
+                                  ForageDist_km = mean(new.net$ForageDist_km, na.rm=TRUE),
+                                  Weights = 1,
+                                  WeightsPar = 1
 )
 
 pred_beediv <- fit.bombus %>%
@@ -667,9 +677,12 @@ ggsave(bombus.div.canopy, file="figures/bombusrich_stand.pdf",
 # canopy and bee abundance
 # ***********************************************************************
 
-labs.bee.ab <- (pretty(c(0, new.orig$MeanCanopy), n=8))
-axis.bee.ab <-  standardize.axis(labs.bee.ab,
-                                 new.orig$MeanCanopy)
+# labs.bee.ab <- (pretty(c(0, new.orig$MeanCanopy), n=8))
+# axis.bee.ab <-  standardize.axis(labs.bee.ab,
+#                                  new.orig$MeanCanopy)
+
+labs.canopy <- (pretty(c(0, new.orig$MeanCanopy), n=8))
+axis.canopy <- (pretty(c(0, new.orig$MeanCanopy), n=8))
 
 newdata.beeab <- tidyr::crossing(MeanCanopy =
                                    seq(min(new.net$MeanCanopy, na.rm=TRUE),
@@ -683,7 +696,9 @@ newdata.beeab <- tidyr::crossing(MeanCanopy =
                                  VegAbundance = mean(new.net$VegAbundance, na.rm=TRUE),
                                  ForageDist_km = mean(new.net$ForageDist_km, na.rm=TRUE),
                                  TempCStart = mean(new.net$TempCStart, na.rm=TRUE),
-                                 VegDiversity = mean(new.net$VegDiversity, na.rm=TRUE)
+                                 VegDiversity = mean(new.net$VegDiversity, na.rm=TRUE),
+                                 Weights = 1,
+                                 WeightsPar = 1
 )
 
 pred_beeab <- fit.bombus %>%
@@ -707,8 +722,8 @@ bee.ab.canopy <- ggplot(pred_beeab, aes(x = MeanCanopy,
              aes(x=MeanCanopy, y=BeeAbundance, color = ThinStatus), cex=2) +
   scale_color_manual(values=c("#000000","#999999")) +
   scale_x_continuous(
-    breaks = axis.bee.ab,
-    labels = labs.bee.ab)
+    breaks = axis.canopy,
+    labels = labs.canopy)
 
 bee.ab.canopy
 
@@ -882,16 +897,13 @@ newdata.beediv <- tidyr::crossing(BeeDiversity =
                                     seq(min(data.par$BeeDiversity),
                                         max(data.par$BeeDiversity),
                                         length.out=10),
-                                  FlowerRareRichness=mean(data.par$FlowerRareRichness),
                                   Stand="100:Camp",
                                   Year = "2021",
-                                  DoyStart = mean(data.par$DoyStart),
-                                  VegAbundance = mean(data.par$VegAbundance),
                                   VegDiversity = mean(data.par$VegDiversity),
                                   BeeAbundance = mean(data.par$BeeAbundance),
                                   ForageDist_km = mean(data.par$ForageDist_km),
-                                  rare.degree = mean(data.par$rare.degree), 
-                                  Weights = 1, 
+                                  rare.degree = mean(data.par$rare.degree, na.rm = TRUE), 
+                                  Weights = 1,
                                   WeightsPar = 1
 )
 
@@ -935,15 +947,12 @@ newdata.beeabund <- tidyr::crossing(BeeAbundance =
                                       seq(min(data.par$BeeAbundance),
                                           max(data.par$BeeAbundance),
                                           length.out=10),
-                                    FlowerRareRichness=mean(data.par$FlowerRareRichness),
                                     Stand="100:Camp",
                                     Year = "2020",
-                                    DoyStart = data.par$DoyStart,
-                                    VegAbundance = mean(data.par$VegAbundance),
                                     TempCStart = mean(data.par$TempCStart),
                                     VegDiversity = mean(data.par$VegDiversity),
                                     ForageDist_km = mean(data.par$ForageDist_km),
-                                    rare.degree = mean(data.par$rare.degree),
+                                    rare.degree = mean(data.par$rare.degree, na.rm = TRUE),
                                     BeeDiversity = mean(data.par$BeeDiversity),
                                     Weights = 1,
                                     WeightsPar = 1
@@ -977,7 +986,10 @@ bee.abund.parasite
 # ggsave(bombus.abund.parasite, file="figures/parasite_beeAbund.pdf",
 #        height=4, width=5)
 
+
+## ***********************************************************************
 #putting plots together
+
 #canopy and bee/flower plots 
 scatter.1 <- grid.arrange(veg.div.stand, 
                             flower.ab.stand,
