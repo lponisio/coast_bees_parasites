@@ -299,9 +299,8 @@ pred_fldiv <- fit.bombus %>%
               resp = "VegDiversity",
               allow_new_levels = TRUE)
 
-labs.fl.div <- (pretty(c(0, new.orig$MeanCanopy), n=8))
-axis.fl.div <- (pretty(c(0, new.orig$MeanCanopy), n=8))
-
+labs.canopy <- (pretty(c(0, new.orig$MeanCanopy), n=8))
+axis.canopy <- (pretty(c(0, new.orig$MeanCanopy), n=8))
 
 y.lab.fl.div <- (pretty(exp(new.orig$VegDiversity), n=5))
 y.axis.fl.div <- standardize.axis(y.lab.fl.div,
@@ -323,8 +322,8 @@ veg.div.stand <- ggplot(pred_fldiv, aes(x = MeanCanopy,
              aes(x=MeanCanopy, y=VegDiversity, color = ThinStatus), cex=2) +
   scale_color_manual(values=c("#000000","#999999")) +
   scale_x_continuous(
-    labels = labs.fl.div,
-    breaks = axis.fl.div) +
+    labels = labs.canopy,
+    breaks = axis.canopy) +
   scale_y_continuous(
     labels = y.lab.fl.div,
     breaks = y.axis.fl.div) 
@@ -338,8 +337,8 @@ ggsave(veg.div.stand, file="figures/vegdiv_stand.pdf",
 ## mean canopy and floral abundance
 ## ***********************************************************************
 
-labs.fl.ab <- (pretty(c(0, new.orig$MeanCanopy), n=8))
-axis.fl.ab <-  (pretty(c(0, new.orig$MeanCanopy), n=8))
+labs.canopy <- (pretty(c(0, new.orig$MeanCanopy), n=8))
+axis.canopy <-  (pretty(c(0, new.orig$MeanCanopy), n=8))
 
 y.labs.fl.ab <- (pretty(exp(new.orig$VegAbundance), n=10))
 y.axis.fl.ab <- standardize.axis(y.labs.fl.ab,
@@ -377,23 +376,23 @@ flower.ab.stand <- ggplot(pred_flab, aes(x = MeanCanopy,
              aes(x=MeanCanopy, y=VegAbundance, color = ThinStatus), cex=2) +
   scale_color_manual(values=c("#000000","#999999")) +
   scale_x_continuous(
-    breaks = axis.fl.ab,
-    labels = labs.fl.ab) +
+    breaks = axis.canopy,
+    labels = labs.canopy) +
   scale_y_continuous(
     breaks = y.axis.fl.ab,
     labels = y.labs.fl.ab)
 
 flower.ab.stand
 
-##ggsave(flower.ab.stand, file="figures/vegabund_stand.pdf",
-##       height=4, width=5)
+ggsave(flower.ab.stand, file="figures/vegabund_stand.pdf",
+       height=4, width=5)
 
 ## ***********************************************************************
 ## mean canopy and bee diversity
 ## ***********************************************************************
 
-labs.fl.ab <- (pretty(c(0, new.orig$MeanCanopy), n=8))
-axis.fl.ab <-  (pretty(c(0, new.orig$MeanCanopy), n=8))
+labs.canopy <- (pretty(c(0, new.orig$MeanCanopy), n=8))
+axis.canopy <-  (pretty(c(0, new.orig$MeanCanopy), n=8))
 
 y.labs.bdiv <- (pretty(c(0, new.orig$BeeDiversity), n=10))
 y.axis.bdiv <- standardize.axis(y.labs.bdiv,
@@ -423,8 +422,8 @@ bee.div.stand <- ggplot(pred_beediv, aes(x = MeanCanopy,
   stat_lineribbon() +
   scale_fill_brewer(palette = "Blues") +
   scale_x_continuous(
-    breaks = axis.fl.ab,
-    labels = labs.fl.ab) +
+    breaks = axis.canopy,
+    labels = labs.canopy) +
   scale_y_continuous(
     breaks = y.axis.bdiv,
     labels = y.labs.bdiv) +
@@ -443,15 +442,15 @@ bee.div.stand <- ggplot(pred_beediv, aes(x = MeanCanopy,
 
 bee.div.stand
 
-##ggsave(bee.div.stand, file="figures/beediv_canopy.pdf",
-##       height=4, width=5)
+ggsave(bee.div.stand, file="figures/beediv_canopy.pdf",
+       height=4, width=5)
 
 ## ***********************************************************************
 ## mean canopy and bee abundance
 ## ***********************************************************************
 
-labs.fl.ab <- (pretty(c(0, new.orig$MeanCanopy), n=8))
-axis.fl.ab <-  (pretty(c(0, new.orig$MeanCanopy), n=8))
+labs.canopy <- (pretty(c(0, new.orig$MeanCanopy), n=8))
+axis.canopy <-  (pretty(c(0, new.orig$MeanCanopy), n=8))
 
 y.labs.fl.ab <- (pretty(c(0, new.orig$BeeAbundance), n=5))
 y.axis.fl.ab <- standardize.axis(y.labs.fl.ab,
@@ -480,8 +479,8 @@ bee.ab.stand <- ggplot(pred_beeab, aes(x = MeanCanopy,
   stat_lineribbon() +
   scale_fill_brewer(palette = "Blues") +
   scale_x_continuous(
-    breaks = axis.fl.ab,
-    labels = labs.fl.ab) +
+    breaks = axis.canopy,
+    labels = labs.canopy) +
   # scale_y_continuous(
   #   breaks = y.axis.fl.ab,
   #   labels = y.labs.fl.ab) +
@@ -499,9 +498,8 @@ bee.ab.stand <- ggplot(pred_beeab, aes(x = MeanCanopy,
 
 bee.ab.stand
 
-##ggsave(bee.ab.stand, file="figures/beeabund_canopy.pdf",
-##       height=4, width=5)
-
+ggsave(bee.ab.stand, file="figures/beeabund_canopy.pdf",
+       height=4, width=5)
 
 ## ***********************************************************************
 ## veg diversity and bee diversity
@@ -560,7 +558,6 @@ ggsave(bee.div.plant, file="figures/beediv_veg.pdf",
 ## floral abundance on bee abundance
 ## ***********************************************************************
 
-#setting axis manually
 labs.bee.ab <- (pretty(c(0, new.orig$VegAbundance), n=8))
 axis.bee.ab <- standardize.axis(labs.bee.ab,
                                     new.orig$VegAbundance)
@@ -614,121 +611,116 @@ bee.ab.plant
 
 ggsave(bee.ab.plant, file="figures/bombusabund_plant.pdf",
        height=4, width=5)
-
-# ***********************************************************************
-# canopy and bee diversity
-# ***********************************************************************
-
-
-labs.bee.div <- (pretty(c(0, new.orig$MeanCanopy), n=8))
-axis.bee.div <-  (pretty(c(0, new.orig$MeanCanopy), n=8))
 # 
-# labs.bee.div <- (pretty(new.orig$MeanCanopy, n=8))
-# axis.bee.div <-  standardize.axis(labs.bee.div,
-#                                   new.orig$MeanCanopy)
-
-newdata.beediv <- tidyr::crossing(MeanCanopy =
-                                    seq(min(new.net$MeanCanopy, na.rm=TRUE),
-                                        max(new.net$MeanCanopy, na.rm=TRUE),
-                                        length.out=10),
-                                  FlowerRareRichness=mean(new.net$FlowerRareRichness, na.rm=TRUE),
-                                  Stand="100:Camp",
-                                  Year = "2020",
-                                  ThinStatus = "Y",
-                                  DoyStart = mean(new.net$DoyStart, na.rm=TRUE),
-                                  VegAbundance = mean(new.net$VegAbundance, na.rm=TRUE),
-                                  VegDiversity = mean(new.net$VegDiversity, na.rm=TRUE),
-                                  TempCStart = mean(new.net$TempCStart, na.rm=TRUE),
-                                  ForageDist_km = mean(new.net$ForageDist_km, na.rm=TRUE),
-                                  Weights = 1,
-                                  WeightsPar = 1
-)
-
-pred_beediv <- fit.bombus %>%
-  epred_draws(newdata = newdata.beediv,
-              resp = "BeeDiversity",
-              allow_new_levels = TRUE)
-
-bombus.div.canopy <- ggplot(pred_beediv, aes(x = MeanCanopy,
-                                             y = .epred)) +
-  stat_lineribbon() +
-  scale_fill_brewer(palette = 'Blues') +
-  labs(x = "Canopy openness", y = "Bee diversity",
-       fill = "Credible interval") +
-  theme(legend.position = "bottom")  +
-  theme(axis.title.x = element_text(size=16),
-        axis.title.y = element_text(size=16),
-        text = element_text(size=16)) +
-  theme_ms() +
-  theme(axis.title.y = ggtext::element_markdown()) +
-  geom_point(data=spec.net,
-             aes(x=MeanCanopy, y=BeeDiversity, color = ThinStatus), cex=2) +
-  scale_color_manual(values=c("#000000","#999999")) +
-  scale_x_continuous(
-    breaks = axis.bee.div,
-    labels =  labs.bee.div)
-
-bombus.div.canopy
-
-ggsave(bombus.div.canopy, file="figures/bombusrich_stand.pdf",
-       height=4, width=5)
-
-# ***********************************************************************
-# canopy and bee abundance
-# ***********************************************************************
-
-# labs.bee.ab <- (pretty(c(0, new.orig$MeanCanopy), n=8))
-# axis.bee.ab <-  standardize.axis(labs.bee.ab,
-#                                  new.orig$MeanCanopy)
-
-labs.canopy <- (pretty(c(0, new.orig$MeanCanopy), n=8))
-axis.canopy <- (pretty(c(0, new.orig$MeanCanopy), n=8))
-
-newdata.beeab <- tidyr::crossing(MeanCanopy =
-                                   seq(min(new.net$MeanCanopy, na.rm=TRUE),
-                                       max(new.net$MeanCanopy, na.rm=TRUE),
-                                       length.out=10),
-                                 FlowerRareRichness=mean(new.net$FlowerRareRichness, na.rm=TRUE),
-                                 Stand ="100:Camp",
-                                 Year = "2020",
-                                 ThinStatus = "Y",
-                                 DoyStart = mean(new.net$DoyStart, na.rm=TRUE),
-                                 VegAbundance = mean(new.net$VegAbundance, na.rm=TRUE),
-                                 ForageDist_km = mean(new.net$ForageDist_km, na.rm=TRUE),
-                                 TempCStart = mean(new.net$TempCStart, na.rm=TRUE),
-                                 VegDiversity = mean(new.net$VegDiversity, na.rm=TRUE),
-                                 Weights = 1,
-                                 WeightsPar = 1
-)
-
-pred_beeab <- fit.bombus %>%
-  epred_draws(newdata = newdata.beeab,
-              resp = "BeeAbundance",
-              allow_new_levels = TRUE)
-
-bee.ab.canopy <- ggplot(pred_beeab, aes(x = MeanCanopy,
-                                           y = .epred)) +
-  stat_lineribbon() +
-  scale_fill_brewer(palette="Blues") +
-  labs(x = "Canopy openness", y = "Bee abundance",
-       fill = "Credible interval") +
-  theme(legend.position = "bottom")  +
-  theme(axis.title.x = element_text(size=16),
-        axis.title.y = element_text(size=16),
-        text = element_text(size=16)) +
-  theme_ms() +
-  theme(axis.title.y = ggtext::element_markdown()) +
-  geom_point(data=new.net,
-             aes(x=MeanCanopy, y=BeeAbundance, color = ThinStatus), cex=2) +
-  scale_color_manual(values=c("#000000","#999999")) +
-  scale_x_continuous(
-    breaks = axis.canopy,
-    labels = labs.canopy)
-
-bee.ab.canopy
-
-ggsave(bee.ab.canopy, file="figures/beeabund_stand.pdf",
-       height=4, width=5)
+# # ***********************************************************************
+# # canopy and bee diversity
+# # ***********************************************************************
+# 
+# labs.canopy <- (pretty(c(0, new.orig$MeanCanopy), n=8))
+# axis.canopy <-  (pretty(c(0, new.orig$MeanCanopy), n=8))
+# 
+# newdata.beediv <- tidyr::crossing(MeanCanopy =
+#                                     seq(min(new.net$MeanCanopy, na.rm=TRUE),
+#                                         max(new.net$MeanCanopy, na.rm=TRUE),
+#                                         length.out=10),
+#                                   FlowerRareRichness=mean(new.net$FlowerRareRichness, na.rm=TRUE),
+#                                   Stand="100:Camp",
+#                                   Year = "2020",
+#                                   ThinStatus = "Y",
+#                                   DoyStart = mean(new.net$DoyStart, na.rm=TRUE),
+#                                   VegAbundance = mean(new.net$VegAbundance, na.rm=TRUE),
+#                                   VegDiversity = mean(new.net$VegDiversity, na.rm=TRUE),
+#                                   TempCStart = mean(new.net$TempCStart, na.rm=TRUE),
+#                                   ForageDist_km = mean(new.net$ForageDist_km, na.rm=TRUE),
+#                                   Weights = 1,
+#                                   WeightsPar = 1
+# )
+# 
+# pred_beediv <- fit.bombus %>%
+#   epred_draws(newdata = newdata.beediv,
+#               resp = "BeeDiversity",
+#               allow_new_levels = TRUE)
+# 
+# bee.div.canopy <- ggplot(pred_beediv, aes(x = MeanCanopy,
+#                                              y = .epred)) +
+#   stat_lineribbon() +
+#   scale_fill_brewer(palette = 'Blues') +
+#   labs(x = "Canopy openness", y = "Bee diversity",
+#        fill = "Credible interval") +
+#   theme(legend.position = "bottom")  +
+#   theme(axis.title.x = element_text(size=16),
+#         axis.title.y = element_text(size=16),
+#         text = element_text(size=16)) +
+#   theme_ms() +
+#   theme(axis.title.y = ggtext::element_markdown()) +
+#   geom_point(data=spec.net,
+#              aes(x=MeanCanopy, y=BeeDiversity, color = ThinStatus), cex=2) +
+#   scale_color_manual(values=c("#000000","#999999")) +
+#   scale_x_continuous(
+#     breaks = axis.canopy,
+#     labels =  labs.canopy)
+# 
+# bee.div.canopy
+# 
+# ggsave(bee.div.canopy, file="figures/beerich_stand.pdf",
+#        height=4, width=5)
+# 
+# # ***********************************************************************
+# # canopy and bee abundance
+# # ***********************************************************************
+# 
+# # labs.bee.ab <- (pretty(c(0, new.orig$MeanCanopy), n=8))
+# # axis.bee.ab <-  standardize.axis(labs.bee.ab,
+# #                                  new.orig$MeanCanopy)
+# 
+# labs.canopy <- (pretty(c(0, new.orig$MeanCanopy), n=8))
+# axis.canopy <- (pretty(c(0, new.orig$MeanCanopy), n=8))
+# 
+# newdata.beeab <- tidyr::crossing(MeanCanopy =
+#                                    seq(min(new.net$MeanCanopy, na.rm=TRUE),
+#                                        max(new.net$MeanCanopy, na.rm=TRUE),
+#                                        length.out=10),
+#                                  FlowerRareRichness=mean(new.net$FlowerRareRichness, na.rm=TRUE),
+#                                  Stand ="100:Camp",
+#                                  Year = "2020",
+#                                  ThinStatus = "Y",
+#                                  DoyStart = mean(new.net$DoyStart, na.rm=TRUE),
+#                                  VegAbundance = mean(new.net$VegAbundance, na.rm=TRUE),
+#                                  ForageDist_km = mean(new.net$ForageDist_km, na.rm=TRUE),
+#                                  TempCStart = mean(new.net$TempCStart, na.rm=TRUE),
+#                                  VegDiversity = mean(new.net$VegDiversity, na.rm=TRUE),
+#                                  Weights = 1,
+#                                  WeightsPar = 1
+# )
+# 
+# pred_beeab <- fit.bombus %>%
+#   epred_draws(newdata = newdata.beeab,
+#               resp = "BeeAbundance",
+#               allow_new_levels = TRUE)
+# 
+# bee.ab.canopy <- ggplot(pred_beeab, aes(x = MeanCanopy,
+#                                            y = .epred)) +
+#   stat_lineribbon() +
+#   scale_fill_brewer(palette="Blues") +
+#   labs(x = "Canopy openness", y = "Bee abundance",
+#        fill = "Credible interval") +
+#   theme(legend.position = "bottom")  +
+#   theme(axis.title.x = element_text(size=16),
+#         axis.title.y = element_text(size=16),
+#         text = element_text(size=16)) +
+#   theme_ms() +
+#   theme(axis.title.y = ggtext::element_markdown()) +
+#   geom_point(data=new.net,
+#              aes(x=MeanCanopy, y=BeeAbundance, color = ThinStatus), cex=2) +
+#   scale_color_manual(values=c("#000000","#999999")) +
+#   scale_x_continuous(
+#     breaks = axis.canopy,
+#     labels = labs.canopy)
+# 
+# bee.ab.canopy
+# 
+# ggsave(bee.ab.canopy, file="figures/beeabund_stand.pdf",
+#        height=4, width=5)
 
 ## ***********************************************************************
 ## veg diversity and doy
@@ -932,16 +924,12 @@ bee.div.crithidia <- ggplot(pred_beediv, aes(x = BeeDiversity, y =
 
 bee.div.crithidia
 
-# ggsave(bee.div.crithidia, file="figures/parasite_beeDiv.pdf",
-#        height=4, width=5)
+ggsave(bee.div.crithidia, file="figures/parasite_beeDiv.pdf",
+       height=4, width=5)
 
 ## ***********************************************************************
 ## parasitism ~ bee abundance
 ## ***********************************************************************
-
-# labs.bee.abund <- (pretty(c(0, unweighted$BombusAbundance)))
-# axis.bee.abund <-  standardize.axis(labs.bee.abund,
-#                                     unweighted$BombusAbundance)
 
 newdata.beeabund <- tidyr::crossing(BeeAbundance =
                                       seq(min(data.par$BeeAbundance),
@@ -982,54 +970,141 @@ bee.abund.parasite <- ggplot(pred_beeabund, aes(x = BeeAbundance, y =
              aes(y=SpStandCrithidiaRate, x=BeeAbundance), cex=2)
 
 bee.abund.parasite
-# 
-# ggsave(bombus.abund.parasite, file="figures/parasite_beeAbund.pdf",
-#        height=4, width=5)
 
+ggsave(bombus.abund.parasite, file="figures/parasite_beeAbund.pdf",
+       height=4, width=5)
+
+## ***********************************************************************
+## parasitism ~ foraging dist
+## ***********************************************************************
+
+newdata.fd <- tidyr::crossing(ForageDist_km =
+                                      seq(min(data.par$ForageDist_km),
+                                          max(data.par$ForageDist_km),
+                                          length.out=10),
+                                    Stand="100:Camp",
+                                    Year = "2020",
+                                    TempCStart = mean(data.par$TempCStart),
+                                    VegDiversity = mean(data.par$VegDiversity),
+                                    BeeAbundance = mean(data.par$BeeAbundance),
+                                    rare.degree = mean(data.par$rare.degree, na.rm = TRUE),
+                                    BeeDiversity = mean(data.par$BeeDiversity),
+                                    Weights = 1,
+                                    WeightsPar = 1
+                                    
+)
+
+pred_fd <- fit.bombus %>%
+  epred_draws(newdata = newdata.fd,
+              resp = "HasCrithidia",
+              allow_new_levels = TRUE)
+
+
+parasite.fd <- ggplot(pred_fd, aes(x = ForageDist_km, y =
+                                                  .epred)) +
+  stat_lineribbon() +
+  scale_fill_brewer(palette = "Blues") +
+  labs(x = "Foraging distance (km)", y = "Stand *Crithidia* rate",
+       fill = "Credible interval") +
+  theme(legend.position = "bottom")  +
+  theme(axis.title.x = element_text(size=16),
+        axis.title.y = element_text(size=16),
+        text = element_text(size=16)) +
+  theme_ms() +
+  theme(axis.title.x = ggtext::element_markdown(),
+        axis.title.y = ggtext::element_markdown()) +
+  geom_point(data=data.par,
+             aes(y=SpStandCrithidiaRate, x=ForageDist_km), cex=2)
+
+parasite.fd
+
+ggsave(parasite.fd, file="figures/parasite_fd.pdf",
+       height=4, width=5)
+
+## ***********************************************************************
+## parasitism ~ diet breadth
+## ***********************************************************************
+
+newdata.diet <- tidyr::crossing(rare.degree =
+                                seq(min(data.par$rare.degree, na.rm=TRUE),
+                                    max(data.par$rare.degree, na.rm=TRUE),
+                                    length.out=10),
+                              Stand="100:Camp",
+                              Year = "2020",
+                              #TempCStart = mean(data.par$TempCStart),
+                              VegDiversity = mean(data.par$VegDiversity),
+                              BeeAbundance = mean(data.par$BeeAbundance),
+                              ForageDist_km = mean(data.par$ForageDist_km),
+                              BeeDiversity = mean(data.par$BeeDiversity),
+                              Weights = 1,
+                              WeightsPar = 1
+                              
+)
+
+pred_diet <- fit.bombus %>%
+  epred_draws(newdata = newdata.diet,
+              resp = "HasCrithidia",
+              allow_new_levels = TRUE)
+
+
+parasite.diet <- ggplot(pred_diet, aes(x = rare.degree, y =
+                                     .epred)) +
+  stat_lineribbon() +
+  scale_fill_brewer(palette = "Blues") +
+  labs(x = "Estimated diet breadth", y = "Stand *Crithidia* rate",
+       fill = "Credible interval") +
+  theme(legend.position = "bottom")  +
+  theme(axis.title.x = element_text(size=16),
+        axis.title.y = element_text(size=16),
+        text = element_text(size=16)) +
+  theme_ms() +
+  theme(axis.title.x = ggtext::element_markdown(),
+        axis.title.y = ggtext::element_markdown()) +
+  geom_point(data=data.par,
+             aes(y=SpStandCrithidiaRate, x=rare.degree), cex=2)
+
+parasite.diet
+
+ggsave(parasite.diet, file="figures/parasite_diet.pdf",
+       height=4, width=5)
 
 ## ***********************************************************************
 #putting plots together
 
-#canopy and bee/flower plots 
-scatter.1 <- grid.arrange(veg.div.stand, 
-                            flower.ab.stand,
-                            bombus.div.canopy,
-                            bombus.ab.canopy,
-                            ncol=2)
-
-ggsave(scatter.1, file="figures/CRcanopyplots.pdf",
-       height=6, width=9)
-                            
-scatter.2 <- grid.arrange(bombus.div.plant,
-                           bombus.ab.plant,
+#canopy and veg 
+scatter.1 <- grid.arrange(veg.div.stand,
+                          flower.ab.stand,
                           ncol=2)
 
-ggsave(scatter.2, file="figures/CRplantplots.pdf",
+ggsave(scatter.1, file="figures/vegcanopy.pdf",
        height=3, width=9)
 
-scatter.3 <- grid.arrange(bombus.div.temp,
-                          bombus.ab.temp,
+
+#canopy and bees
+scatter.2 <- grid.arrange(bee.div.stand,
+                          bee.ab.stand,
                           ncol=2)
 
-ggsave(scatter.3, file="figures/CRtempplots.pdf",
+ggsave(scatter.2, file="figures/beecanopy.pdf",
        height=3, width=9)
 
+#veg div/bee div and veg ab/bee ab                    
+scatter.3 <- grid.arrange(bee.div.plant,
+                           bee.ab.plant,
+                          ncol=2)
+
+ggsave(scatter.3, file="figures/beevegplots.pdf",
+       height=3, width=9)
+
+#jfb check for redundancy in bee/canopy plots 
+
+#bees and crithidia rate
 scatter.4 <- grid.arrange(bee.div.crithidia,
-                          bombus.abund.parasite,
+                          bee.abund.parasite,
                           ncol=2)
 
 ggsave(scatter.4, file="figures/CRdiseaseplots.pdf",
        height=3, width=9)
-
-scatter.5 <- grid.arrange(doy.veg.div,
-                          doy.veg.ab,
-                          ncol=2)
-
-ggsave(scatter.5, file="figures/CRdoyplots.pdf",
-       height=3, width=9)
-
-## ggsave(parasite.all, file="figures/presentation_dark/all_parasite.pdf",
-##        height=4, width=10)
 
 # #############
 # Deprecated parasite plots:  
@@ -1083,60 +1158,4 @@ ggsave(scatter.5, file="figures/CRdoyplots.pdf",
 #        height=4, width=5)
 
 ############################
-
-## parasitism ~ doy
-# 
-# labs.doy <- (pretty(spec.net.orig$DoyStart, n=8))
-# axis.doy <-  standardize.axis(labs.doy,
-#                               spec.net.orig$DoyStart)
-# 
-# 
-# newdata.beeabund <- tidyr::crossing(DoyStart =
-#                                       seq(min(data.par$DoyStart),
-#                                           max(data.par$DoyStart),
-#                                           length.out=10),
-#                                     BombusDiversity=mean(data.par$BombusDiversity),
-#                                     Stand="100:Camp",
-#                                     FireName = data.par$FireName,
-#                                     Year = data.par$Year,
-#                                     VegDiversity = mean(data.par$VegDiversity),
-#                                     VegAbundance = mean(data.par$VegAbundance),
-#                                     BombusAbundance = mean(data.par$BombusAbundance),
-#                                     LargestHighSevPatch = mean(data.par$LargestHighSevPatch)
-# )
-# 
-# pred_beeabund <- fit.bombus %>%
-#   epred_draws(newdata = newdata.beeabund ,
-#               resp = "ParasitePresence",
-#               allow_new_levels = TRUE)
-# 
-# 
-# doy.parasite <- ggplot(pred_beeabund, aes(x = DoyStart, y =
-#                                             .epred)) +
-#   stat_lineribbon() +
-#   scale_fill_brewer(palette = "Reds") +
-#   labs(x = "DoyStart", y = "Bombus Stand Parasitism Rate",
-#        fill = "Credible interval") +
-#   theme(legend.position = "bottom") +
-#   scale_x_continuous(
-#     breaks = axis.doy,
-#     labels =  labs.doy) +
-#   theme(axis.title.x = element_text(size=16),
-#         axis.title.y = element_text(size=16),
-#         text = element_text(size=16)) +
-#   theme_ms() +
-#   geom_point(data=data.par,
-#              aes(y=BombusStandParasitismRate, x=DoyStart), cex=2)
-# 
-# doy.parasite
-# 
-# ggsave(doy.parasite, file="figures/parasite_DOY.pdf",
-#        height=4, width=5)
-
-# ########################
-
-# parasite.all <- grid.arrange(p1.parasite, p2.parasite, ncol=2)
-
-## ggsave(parasite.all, file="figures/presentation_dark/all_parasite.pdf",
-##        height=4, width=10)
 
