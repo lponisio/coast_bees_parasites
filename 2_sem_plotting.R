@@ -364,7 +364,7 @@ flower.ab.stand <- ggplot(pred_flab, aes(x = MeanCanopy,
                                          y = .epred)) +
   stat_lineribbon() +
   scale_fill_brewer(palette = "Blues") +
-  labs(y = str_wrap("Flowering plant abundance", width =20),
+  labs(y = str_wrap("Floral abundance", width =20),
        x = "Canopy openness",
        fill = "Credible interval") +
   theme(legend.position = "bottom")  +
@@ -557,14 +557,14 @@ ggsave(bee.div.plant, file="figures/beediv_veg.pdf",
 ## ***********************************************************************
 ## floral abundance on bee abundance
 ## ***********************************************************************
-
-labs.bee.ab <- (pretty(c(0, new.orig$VegAbundance), n=8))
-axis.bee.ab <- standardize.axis(labs.bee.ab,
-                                    new.orig$VegAbundance)
-                            
-# y.labs.fl.ab <- (pretty(exp(new.orig$VegAbundance), n=10))
-# y.axis.fl.ab <- standardize.axis(y.labs.fl.ab,
-#                                  exp(new.orig$VegAbundance))
+# 
+# labs.bee.ab <- (pretty(c(0, new.orig$VegAbundance), n=8))
+# axis.bee.ab <- standardize.axis(labs.bee.ab,
+#                                     new.orig$VegAbundance)
+#                             
+labs.fl.ab <- (pretty(exp(new.orig$VegAbundance), n=10))
+axis.fl.ab <- standardize.axis(y.labs.fl.ab,
+                                 exp(new.orig$VegAbundance))
 
 
 newdata.beeab <- tidyr::crossing(VegAbundance =
@@ -593,7 +593,7 @@ bee.ab.plant <- ggplot(pred_beeab, aes(x = VegAbundance,
                                        y = .epred)) +
   stat_lineribbon() +
   scale_fill_brewer(palette="Blues") +
-  labs(x = "Flowering plant abundance (log)", y = "Bee abundance",
+  labs(x = "Flowering plant abundance", y = "Bee abundance",
        fill = "Credible interval") +
   theme(legend.position = "bottom")  +
   theme(axis.title.x = element_text(size=16),
@@ -604,8 +604,8 @@ bee.ab.plant <- ggplot(pred_beeab, aes(x = VegAbundance,
   geom_point(data=new.net,
              aes(x=VegAbundance, y=BeeAbundance), cex=2) +
   scale_x_continuous(
-    breaks = axis.bee.ab,
-    labels = labs.bee.ab)
+    breaks = axis.fl.ab,
+    labels = labs.fl.ab)
 
 bee.ab.plant
 
@@ -1096,14 +1096,20 @@ scatter.3 <- grid.arrange(bee.div.plant,
 ggsave(scatter.3, file="figures/beevegplots.pdf",
        height=3, width=9)
 
-#jfb check for redundancy in bee/canopy plots 
-
 #bees and crithidia rate
 scatter.4 <- grid.arrange(bee.div.crithidia,
                           bee.abund.parasite,
                           ncol=2)
 
 ggsave(scatter.4, file="figures/CRdiseaseplots.pdf",
+       height=3, width=9)
+
+#crithidia and distance/diet
+scatter.5 <- grid.arrange(parasite.fd,
+                          parasite.diet,
+                          ncol=2)
+
+ggsave(scatter.5, file="figures/CRdietforage.pdf",
        height=3, width=9)
 
 # #############
