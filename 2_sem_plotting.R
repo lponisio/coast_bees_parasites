@@ -15,6 +15,11 @@ source("src/ggplotThemes.R")
 source("src/init.R")
 source("src/misc.R")
 
+library(gridExtra)
+library(grid)
+library(ggplot2)
+library(lattice)
+
 ## load model results and data
 load(file="saved/CrithidiaFitAllBee_coast.Rdata")
 
@@ -27,7 +32,7 @@ stands <- spec.orig[!duplicated(spec.orig$StandRoundYear), ]
 standsplot <- stands %>% 
   ggplot(aes(x=DomTreeDiam_cm, y=MeanCanopy, color=ThinStatus)) +
   geom_point() + 
-  scale_color_manual(values = c("Y" = "gold", "N" = "maroon"),
+  scale_color_manual(values = c("Y" = "#999999", "N" = "black"),
                      labels=c('Not thinned', 'Thinned'),
                      name="Management history") +
   labs(x="Dominant tree class DBH (cm)", y="Canopy openness") +
@@ -124,10 +129,11 @@ bee.spp.bar <- ggplot(summary,
   geom_bar(stat = 'identity',
            aes(fill = factor(CanopyBin)), position = "dodge") +
   scale_fill_manual(values=c('#004D40', '#FFC107', 'lightblue'),
-                    name = "Canopy closure", 
+                    name = "Canopy type", 
                     labels=c('Closed', 'Intermediate', 'Open')) +
   theme_classic() +
-  theme(axis.text.y = element_text(angle = 0, hjust = 1, 
+  theme(legend.position = "top",
+        axis.text.y = element_text(angle = 0, hjust = 1, 
                                    face ='italic', color = 'black'),
         axis.text.x = element_text(color="black"),
         axis.title.y = element_text(size=14),
@@ -153,19 +159,18 @@ beesper <- bomb.orig %>%
   group_by(CanopyBin, GenusSpecies) %>% 
   summarise(count = n())
 
-summary <- beesper %>% 
+bombsummary <- beesper %>% 
   left_join(standstype, by="CanopyBin") %>% 
   mutate(avg = count.x/count.y) 
 
 #modifying to show prop of total
-bombus.spp.bar <- ggplot(summary, 
+bombus.spp.bar <- ggplot(bombsummary, 
                          aes(y = fct_reorder(GenusSpecies, avg, .desc = TRUE),
                              x = avg)) + 
   geom_bar(stat = 'identity',
-           aes(fill = factor(CanopyBin)), position = "dodge") +
-  scale_fill_manual(values=c('#004D40', '#FFC107', 'lightblue'),
-                    name = "Canopy closure", 
-                    labels=c('Closed', 'Intermediate', 'Open')) +
+           aes(fill = factor(CanopyBin)), position = "dodge",
+           show.legend = F) +
+  scale_fill_manual(values=c('#004D40', '#FFC107', 'lightblue')) +
   theme_classic() +
   theme(axis.text.y = element_text(angle = 0, hjust = 1, 
                                    face ='italic', color = 'black'),
@@ -182,54 +187,6 @@ bombus.spp.bar
 ggsave(bombus.spp.bar, file="figures/bombusSppbar.pdf",
        height=3, width=5)
 
-
-#plants per stand type
-# plantsper <- spec.orig %>% 
-#   group_by(CanopyBin, PlantGenusSpecies) %>% 
-#   summarise(count = n())
-# 
-# #add total stands in each stand type, + divide 
-# summary <- plantsper %>% 
-#   left_join(standstype, by="CanopyBin") %>% 
-#   mutate(avg = count.x/count.y) 
-# 
-# plant.spp.bar <- ggplot(summary, 
-#                          aes(y = fct_reorder(PlantGenusSpecies, avg, .desc = TRUE),
-#                              x = avg)) + 
-#   geom_bar(stat = 'identity',
-#            aes(fill = factor(CanopyBin)), position = "dodge") +
-#   theme_classic() +
-#   theme(axis.text.y = element_text(angle = 0, hjust = 1, 
-#                                    face ='italic', color = 'black'),
-#         axis.title.y = element_text(size=14),
-#         axis.title.x = element_text(size=14),
-#         text = element_text(size=14)) +
-#   labs(y=expression(paste('Species')), x='Average individuals 
-#        collected per stand type')
-# 
-# plant.spp.bar
-# 
-# 
-# #total bees collected (not per stand)
-# bombus.tot.bar <- ggplot(spec.orig, aes(y = fct_infreq(GenusSpecies))) + 
-#   geom_bar(stat = 'count',
-#            aes(fill = factor(age)), position = "dodge") +
-#   scale_fill_manual(values=c('darkorange4', 'darkorange', 'gold')) +
-#   theme_classic() +
-#   theme(axis.text.y = element_text(angle = 0, hjust = 1, 
-#                                    face ='italic', color = 'black'),
-#         axis.title.y = element_text(size=16),
-#         axis.title.x = element_text(size=16),
-#         text = element_text(size=16)) +
-#   labs(y=expression(paste('Species')), x='Number of \n Collected Individuals') +
-#   geom_text(stat='count', aes(label=..count..), hjust=-0.5) + 
-#   xlim(0, 100)
-# 
-# bombus.tot.bar
-# 
-# ggsave(bombus.tot.bar, file="figures/bombusTotbar.pdf",
-#        height=5, width=7.5)
-
 ##parasite counts
 parasite.count.table <- spec.orig %>%
   filter(Apidae == 1) %>%
@@ -245,17 +202,16 @@ parasite.count.table <- spec.orig %>%
 parasite.hist <- parasite.count.table %>%
   ggplot(aes(y= fct_infreq(ParasiteName))) + 
   geom_bar(stat = 'count',
-           aes(fill = factor(CanopyBin)), position = "dodge") +
-  scale_fill_manual(values=c('#004D40', '#FFC107', 'lightblue'),
-                    name = "Canopy closure", 
-                    labels=c('Closed', 'Intermediate', 'Open')) +
+           aes(fill = factor(CanopyBin)), position = "dodge",
+           show.legend = F) +
+  scale_fill_manual(values=c('#004D40', '#FFC107', 'lightblue')) +
   theme_classic() +
   theme(axis.text.y = element_text(angle = 0, hjust = 1, color = "black"),
-        axis.title.y = element_text(size=16),
-        axis.title.x = element_text(size=16),
+        axis.title.y = element_text(size=14),
+        axis.title.x = element_text(size=14),
         axis.text.x = element_text(color = "black"),
-        text = element_text(size=16)) +
-  labs(y='Parasite', x='Number of \n Infected Individuals') +
+        text = element_text(size=14)) +
+  labs(y='Parasite', x='Number of \n infected individuals') +
   xlim(0,75) +
   scale_y_discrete(labels=c("NosemaCeranae"=expression(italic('Nosema ceranae')),
                             "NosemaBombi"=expression(italic('Nosema bombi')),
@@ -270,6 +226,18 @@ parasite.hist
 
 ggsave(parasite.hist, file="figures/coastparasiteSppHist.pdf",
        height=3, width=5)
+
+## combining summary plots
+summaries <- grid.arrange(bee.spp.bar, 
+                          bombus.spp.bar, 
+                          parasite.hist, 
+                          nrow = 2,
+             layout_matrix = rbind(c(1, 2),
+                                   c(1, 3))
+)
+
+ggsave(summaries, file="figures/summaries.pdf",
+       height=9, width=11)
 
 ## ***********************************************************************
 ## prepping for newdata draws 
@@ -427,7 +395,7 @@ bee.div.stand <- ggplot(pred_beediv, aes(x = MeanCanopy,
   scale_y_continuous(
     breaks = y.axis.bdiv,
     labels = y.labs.bdiv) +
-  labs(y = str_wrap("Bee Diversity", width =20),
+  labs(y = str_wrap("Bee diversity", width =20),
        x = "Canopy openness",
        fill = "Credible interval") +
   theme(legend.position = "bottom")  +
@@ -563,7 +531,7 @@ ggsave(bee.div.plant, file="figures/beediv_veg.pdf",
 #                                     new.orig$VegAbundance)
 #                             
 labs.fl.ab <- (pretty(exp(new.orig$VegAbundance), n=10))
-axis.fl.ab <- standardize.axis(y.labs.fl.ab,
+axis.fl.ab <- standardize.axis(labs.fl.ab,
                                  exp(new.orig$VegAbundance))
 
 
@@ -1074,19 +1042,21 @@ ggsave(parasite.diet, file="figures/parasite_diet.pdf",
 #canopy and veg 
 scatter.1 <- grid.arrange(veg.div.stand,
                           flower.ab.stand,
-                          ncol=2)
-
-ggsave(scatter.1, file="figures/vegcanopy.pdf",
-       height=3, width=9)
-
-
-#canopy and bees
-scatter.2 <- grid.arrange(bee.div.stand,
+                          bee.div.stand,
                           bee.ab.stand,
                           ncol=2)
 
-ggsave(scatter.2, file="figures/beecanopy.pdf",
-       height=3, width=9)
+ggsave(scatter.1, file="figures/canopyplots.pdf",
+       height=6, width=9)
+
+
+#canopy and bees
+# scatter.2 <- grid.arrange(bee.div.stand,
+#                           bee.ab.stand,
+#                           ncol=2)
+# 
+# ggsave(scatter.2, file="figures/beecanopy.pdf",
+#        height=3, width=9)
 
 #veg div/bee div and veg ab/bee ab                    
 scatter.3 <- grid.arrange(bee.div.plant,
@@ -1112,8 +1082,56 @@ scatter.5 <- grid.arrange(parasite.fd,
 ggsave(scatter.5, file="figures/CRdietforage.pdf",
        height=3, width=9)
 
-# #############
-# Deprecated parasite plots:  
+
+##Deprecated summary plots: 
+#
+##plants per stand type
+# plantsper <- spec.orig %>% 
+#   group_by(CanopyBin, PlantGenusSpecies) %>% 
+#   summarise(count = n())
+# 
+# #add total stands in each stand type, + divide 
+# summary <- plantsper %>% 
+#   left_join(standstype, by="CanopyBin") %>% 
+#   mutate(avg = count.x/count.y) 
+# 
+# plant.spp.bar <- ggplot(summary, 
+#                          aes(y = fct_reorder(PlantGenusSpecies, avg, .desc = TRUE),
+#                              x = avg)) + 
+#   geom_bar(stat = 'identity',
+#            aes(fill = factor(CanopyBin)), position = "dodge") +
+#   theme_classic() +
+#   theme(axis.text.y = element_text(angle = 0, hjust = 1, 
+#                                    face ='italic', color = 'black'),
+#         axis.title.y = element_text(size=14),
+#         axis.title.x = element_text(size=14),
+#         text = element_text(size=14)) +
+#   labs(y=expression(paste('Species')), x='Average individuals 
+#        collected per stand type')
+# 
+# plant.spp.bar
+# 
+# 
+##total bees collected (not per stand)
+# bombus.tot.bar <- ggplot(spec.orig, aes(y = fct_infreq(GenusSpecies))) + 
+#   geom_bar(stat = 'count',
+#            aes(fill = factor(age)), position = "dodge") +
+#   scale_fill_manual(values=c('darkorange4', 'darkorange', 'gold')) +
+#   theme_classic() +
+#   theme(axis.text.y = element_text(angle = 0, hjust = 1, 
+#                                    face ='italic', color = 'black'),
+#         axis.title.y = element_text(size=16),
+#         axis.title.x = element_text(size=16),
+#         text = element_text(size=16)) +
+#   labs(y=expression(paste('Species')), x='Number of \n Collected Individuals') +
+#   geom_text(stat='count', aes(label=..count..), hjust=-0.5) + 
+#   xlim(0, 100)
+# 
+# bombus.tot.bar
+# 
+# ggsave(bombus.tot.bar, file="figures/bombusTotbar.pdf",
+#        height=5, width=7.5)
+## Deprecated parasite plots:  
 # 
 # labs.veg.div <- (pretty(spec.net$FlowerRareRichness, n=8))
 # axis.veg.div <-  standardize.axis(labs.veg.div,
@@ -1162,6 +1180,7 @@ ggsave(scatter.5, file="figures/CRdietforage.pdf",
 # 
 # ggsave(veg.div.parasite, file="figures/parasite_vegDiv.pdf",
 #        height=4, width=5)
+
 
 ############################
 
