@@ -26,7 +26,6 @@ load(file="saved/CrithidiaFitAllBee_coast.Rdata")
 ## ***********************************************************************
 ## scatterplot of canopy cover and dbh, highlighting thins 
 ## ***********************************************************************
-
 stands <- spec.orig[!duplicated(spec.orig$StandRoundYear), ]
 
 standsplot <- stands %>% 
@@ -51,7 +50,6 @@ ggsave(standsplot, file="figures/canopyDBH.pdf",
 ## ***********************************************************************
 ## descriptive bar charts
 ## ***********************************************************************
-
 #binning canopy - remember that canopy is unintuitive and 0-25 is lowest
 spec.orig$CanopyBin <- cut(spec.orig$MeanCanopy,
                      breaks = c(0, 25, 75, 100), 
@@ -89,11 +87,6 @@ stats2 <- spec.orig.2 %>%
 # standstype <- spec.orig %>% 
 #   group_by(age, PlantGenusSpecies) %>% 
 #   summarise(count = n())
-# 
-##bees per stand type
-# beesper <- spec.orig %>% 
-#   group_by(age, GenusSpecies) %>% 
-#   summarise(count = n())
 
 spec.orig <- spec.orig[!is.na(spec.orig$CanopyBin),]
 
@@ -102,9 +95,7 @@ closed <- spec.orig[spec.orig$CanopyBin %in% c("[0,25)"),]
 intermed <- spec.orig[spec.orig$CanopyBin %in% c("[25,75)"),]
 open <- spec.orig[spec.orig$CanopyBin %in% c("[75,100]"),]
 
-
 ####bee genus bars
-
 #summarize individuals per n type of stand in each category
 standstype <- spec.orig %>% 
   group_by(CanopyBin) %>% 
@@ -116,7 +107,8 @@ beesper <- spec.orig %>%
 
 summary <- beesper %>% 
   left_join(standstype, by="CanopyBin") %>% 
-  mutate(avg = count.x/count.y) 
+  mutate(avg = count.x/count.y) %>% 
+  filter(!is.na(Genus))
 
 ## ***********************************************************************
 ## all bee genus bar graph
@@ -136,12 +128,14 @@ bee.spp.bar <- ggplot(summary,
         axis.text.y = element_text(angle = 0, hjust = 1, 
                                    face ='italic', color = 'black'),
         axis.text.x = element_text(color="black"),
-        axis.title.y = element_text(size=14),
-        axis.title.x = element_text(size=14),
+        axis.title.y = element_text(size=15),
+        axis.title.x = element_text(size=15),
         axis.ticks = element_line(color = "black"),
-        text = element_text(size=14)) +
+        text = element_text(size=15),
+        plot.tag = element_text(),
+        plot.tag.position = c(0.9, 0.92)) +
   labs(y=expression(paste('Genus')), x='Average individuals
-       collected per canopy type')
+       collected per canopy type', tag = "a)")
 
 bee.spp.bar
 
@@ -175,12 +169,14 @@ bombus.spp.bar <- ggplot(bombsummary,
   theme(axis.text.y = element_text(angle = 0, hjust = 1, 
                                    face ='italic', color = 'black'),
         axis.text.x = element_text(color="black"),
-        axis.title.y = element_text(size=14),
-        axis.title.x = element_text(size=14),
+        axis.title.y = element_text(size=15),
+        axis.title.x = element_text(size=15),
         axis.ticks = element_line(color = "black"),
-        text = element_text(size=14)) +
+        text = element_text(size=15),
+        plot.tag = element_text(),
+        plot.tag.position = c(0.9, 0.95)) +
   labs(y=expression(paste('Species')), x='Average individuals
-       collected per canopy type')
+       collected per canopy type', tag = "b)")
 
 bombus.spp.bar
 
@@ -198,7 +194,6 @@ parasite.count.table <- spec.orig %>%
                names_to = 'ParasiteName', values_to = 'HasParasite') %>%
   filter(HasParasite == 1)
 
-#using #4C4C5A
 parasite.hist <- parasite.count.table %>%
   ggplot(aes(y= fct_infreq(ParasiteName))) + 
   geom_bar(stat = 'count',
@@ -207,11 +202,14 @@ parasite.hist <- parasite.count.table %>%
   scale_fill_manual(values=c('#004D40', '#FFC107', 'lightblue')) +
   theme_classic() +
   theme(axis.text.y = element_text(angle = 0, hjust = 1, color = "black"),
-        axis.title.y = element_text(size=14),
-        axis.title.x = element_text(size=14),
+        axis.title.y = element_text(size=15),
+        axis.title.x = element_text(size=15),
         axis.text.x = element_text(color = "black"),
-        text = element_text(size=14)) +
-  labs(y='Parasite', x='Number of \n infected individuals') +
+        text = element_text(size=15),
+        plot.tag = element_text(),
+        plot.tag.position = c(0.9, 0.9)) +
+  labs(y='Parasite', x='Number of \n infected individuals',
+       tag = "c)") +
   xlim(0,75) +
   scale_y_discrete(labels=c("NosemaCeranae"=expression(italic('Nosema ceranae')),
                             "NosemaBombi"=expression(italic('Nosema bombi')),
@@ -1103,9 +1101,9 @@ ggsave(scatter.5, file="figures/CRdietforage.pdf",
 #   theme_classic() +
 #   theme(axis.text.y = element_text(angle = 0, hjust = 1, 
 #                                    face ='italic', color = 'black'),
-#         axis.title.y = element_text(size=14),
-#         axis.title.x = element_text(size=14),
-#         text = element_text(size=14)) +
+#         axis.title.y = element_text(size=15),
+#         axis.title.x = element_text(size=15),
+#         text = element_text(size=15)) +
 #   labs(y=expression(paste('Species')), x='Average individuals 
 #        collected per stand type')
 # 
