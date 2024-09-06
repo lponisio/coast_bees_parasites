@@ -110,7 +110,7 @@ formula.flower.div <- formula(VegDiversity | subset(Weights) ~
 formula.flower.abund <- formula(VegAbundance | subset(Weights) ~
                                     DoyStart +  I(DoyStart^2) +
                                         MeanCanopy*ThinStatus +
-                                        I(MeanCanopy^2)*ThinStatus +
+                                        I(MeanCanopy^2) +
                                         Year +
                                         (1|Stand)
                                 )
@@ -199,7 +199,7 @@ bf.fabund <- bf(formula.flower.abund, family = "gaussian")
 bf.bdiv <- bf(formula.bee.div, hu=formula.bee.div.hu,
               family="hurdle_gamma")
 bf.babund <- bf(formula.bee.abund, hu=formula.bee.abund.hu,
-                family = "hurdle_lognormal")
+                family = "hurdle_gamma")
 
 ## convert to brms format
 bf.par <- bf(formula.crithidia, family="bernoulli")
@@ -231,7 +231,7 @@ run_plot_freq_model_diagnostics(remove_subset_formula(formula.bee.div),
 ## inflated)
 run_plot_freq_model_diagnostics(remove_subset_formula(formula.bee.abund),
                                 this_data=spec.net[spec.net$Weights == 1,],
-                                this_family="hurdle_lognormal")
+                                this_family="hurdle_gamma")
 
 freq.formula <- as.formula(paste("HasCrithidia",
                                  paste(xvars.coast[-length(xvars.coast)],
@@ -269,7 +269,7 @@ summary(fit.bombus)
 
 bayes_R2(fit.bombus)
 
-plot(pp_check(fit.bombus, resp="VegDiversity"))
-plot(pp_check(fit.bombus, resp="VegAbundance"))
-plot(pp_check(fit.bombus, resp="BeeAbundance"))
-plot(pp_check(fit.bombus, resp="BeeDiversity"))
+plot(pp_check(fit.bombus, resp="VegDiversity", ndraws=10^3))
+plot(pp_check(fit.bombus, resp="VegAbundance", ndraws=10^3))
+plot(pp_check(fit.bombus, resp="BeeAbundance", ndraws=10^3))
+plot(pp_check(fit.bombus, resp="BeeDiversity", ndraws=10^3))
