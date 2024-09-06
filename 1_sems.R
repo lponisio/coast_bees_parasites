@@ -110,7 +110,7 @@ formula.flower.div <- formula(VegDiversity | subset(Weights) ~
 formula.flower.abund <- formula(VegAbundance | subset(Weights) ~
                                     DoyStart +  I(DoyStart^2) +
                                         MeanCanopy*ThinStatus +
-                                        ## I(MeanCanopy^2)*ThinStatus +
+                                        I(MeanCanopy^2)*ThinStatus +
                                         Year +
                                         (1|Stand)
                                 )

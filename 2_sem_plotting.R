@@ -291,7 +291,7 @@ axis.canopy <- standardize.axis(labs.canopy,
 
 ##  log + 1
 ## floral diversity
-y.lab.fl.div <- (pretty(new.orig$VegDiversity, n=5))
+y.labs.fl.div <- (pretty(new.orig$VegDiversity, n=5))
 y.axis.fl.div <- standardize.axis(y.lab.fl.div,
                                  new.orig$VegDiversity)
 
@@ -313,114 +313,9 @@ all.cond.effects <- conditional_effects(fit.bombus)
 
 ## different slopes and intercepts for thinned/unthinned
 ## thinned
-newdata.fl.div.thinned <- tidyr::crossing(MeanCanopy =
-                                    seq(min(new.net$MeanCanopy, na.rm = TRUE),
-                                        max(new.net$MeanCanopy, na.rm = TRUE),
-                                        length.out=10),
-                                  Stand="305:LNF_Siuslaw",
-                                  Year = "2021",
-                                  ThinStatus = "Y",
-                                  DoyStart = mean(new.net$DoyStart, na.rm = TRUE),
-                                  Weights = 1,
-                                  WeightsPar = 1
-)
-pred_fldiv.thinned <- fit.bombus %>%
-  epred_draws(newdata = newdata.fl.div.thinned,
-              resp = "VegDiversity",
-              allow_new_levels = TRUE)
-
-## unthinned
-newdata.fl.div.unthinned <- tidyr::crossing(MeanCanopy =
-                                    seq(min(new.net$MeanCanopy, na.rm = TRUE),
-                                        max(new.net$MeanCanopy, na.rm = TRUE),
-                                        length.out=10),
-                                  Stand="364:UNF_Siuslaw",
-                                  Year = "2021",
-                                  ThinStatus = "N",
-                                  DoyStart = mean(new.net$DoyStart, na.rm = TRUE),
-                                  Weights = 1,
-                                  WeightsPar = 1
-)
-pred_fldiv.unthinned <- fit.bombus %>%
-  epred_draws(newdata = newdata.fl.div.unthinned,
-              resp = "VegDiversity",
-              allow_new_levels = TRUE)
-
-## combine thin and unthinned 
-pred_fldiv <- rbind(pred_fldiv.thinned, pred_fldiv.unthinned)
-
-
-veg.div.stand <- ggplot(pred_fldiv, aes(x = MeanCanopy,
-                                        y = .epred,
-                                        fill=ThinStatus)) +
-    stat_lineribbon(aes(linetype = ThinStatus, color = ThinStatus), alpha = .6, .width = .95) +
-    scale_fill_manual(values = c("darkolivegreen4", "forestgreen"),
-                      labels = c("Thinned 0.95", "Unthinned 0.95")) +
-    scale_color_manual(values = c("black", gray(.4))) +
-    geom_point(data=new.net,
-               aes(x=MeanCanopy, y=VegDiversity,
-                   color = ThinStatus), cex=2) +
-    geom_point(data=new.net,
-               aes(x=MeanCanopy, y=VegDiversity), cex=2, pch=1) +
-    labs(x = "Canopy openness", y = "Flowering plant diversity",
-         fill = "Credible interval") +
-    theme_ms() +
-    theme(legend.position = "bottom") +
-    scale_x_continuous(
-        breaks = axis.canopy,
-        labels =  labs.canopy) +
-    scale_y_continuous(
-        labels = y.lab.fl.div,
-        breaks = y.axis.fl.div) +
-    theme(axis.title.x = element_blank(),
-          axis.title.y = element_text(size=16),
-          text = element_text(size=16)) 
-
-veg.div.stand
-
-ggsave(veg.div.stand, file="figures/vegdiv_stand.pdf",
-       height=4, width=5)
-
 
 vdiv <-
     all.cond.effects[["VegDiversity.VegDiversity_MeanCanopy:ThinStatus"]]
-
-veg.div.stand <- ggplot(vdiv, aes(x = MeanCanopy,
-                                  y = estimate__)) +
-    stat_lineribbon(aes(x = MeanCanopy, y=estimate__ ,
-                        color = ThinStatus), .width = .95) +
-    stat_lineribbon(aes(x = MeanCanopy, y=lower__,
-                        color = ThinStatus),
-                    .width = .95, linetype=2) +
-    stat_lineribbon(aes(x = MeanCanopy, y=upper__,
-                        color = ThinStatus),
-                    .width = .95, linetype=2) +
-    scale_color_manual(values = c("darkolivegreen4", gray(.4)),
-                      labels = c("Thinned", "Unthinned")) +
-    ## scale_color_manual(values = c("black", gray(.4))) +
-    geom_point(data=new.net,
-               aes(x=MeanCanopy, y=VegDiversity,
-                   color = ThinStatus), cex=2) +
-    geom_point(data=new.net,
-               aes(x=MeanCanopy, y=VegDiversity), cex=2, pch=1) +
-    labs(x = "Canopy openness", y = "Flowering plant diversity",
-         fill = "Credible interval") +
-    theme_ms() +
-    theme(legend.position = "bottom") +
-    scale_x_continuous(
-        breaks = axis.canopy,
-        labels =  labs.canopy) +
-    scale_y_continuous(
-        labels = y.lab.fl.div,
-        breaks = y.axis.fl.div) +
-    theme(axis.title.x = element_blank(),
-          axis.title.y = element_text(size=16),
-          text = element_text(size=16)) 
-
-veg.div.stand
-
-
-
 
 veg.div.stand <- ggplot(vdiv, aes(x = MeanCanopy,
                                   y = estimate__)) +
@@ -439,80 +334,48 @@ veg.div.stand <- ggplot(vdiv, aes(x = MeanCanopy,
     labs(x = "Canopy openness", y = "Flowering plant diversity",
          fill = "Credible interval") +
     theme_ms() +
-    theme(legend.position = "bottom") +
+    theme(legend.position = "none") +
     scale_x_continuous(
         breaks = axis.canopy,
         labels =  labs.canopy) +
     scale_y_continuous(
-        labels = y.lab.fl.div,
+        labels = y.labs.fl.div,
         breaks = y.axis.fl.div) +
     theme(axis.title.x = element_blank(),
           axis.title.y = element_text(size=16),
           text = element_text(size=16)) 
 
 veg.div.stand
-
-
+ggsave(veg.div.stand, file="figures/vegdiv_stand.pdf",
+       height=4, width=5)
 
 ## ***********************************************************************
 ## mean canopy and floral abundance
 ## ***********************************************************************
 ## different intercepts for thinned/unthinned
 ## thinned
-newdata.fl.ab.thinned <- tidyr::crossing(MeanCanopy =
-                                   seq(min(new.net$MeanCanopy, na.rm=TRUE),
-                                       max(new.net$MeanCanopy, na.rm=TRUE),
-                                       length.out=10),
-                                 Stand="305:LNF_Siuslaw",
-                                 Year = "2021",
-                                 ThinStatus = "Y",
-                                 DoyStart = mean(new.net$DoyStart, na.rm=TRUE),
-                                 Weights = 1, 
-                                 WeightsPar = 1
-)
 
-pred_flab.thinned <- fit.bombus %>%
-  epred_draws(newdata = newdata.fl.ab.thinned,
-              resp = "VegAbundance",
-              allow_new_levels = TRUE)
+vabund <-
+    all.cond.effects[["VegAbundance.VegAbundance_MeanCanopy:ThinStatus"]]
 
-
-## unthinned
-newdata.fl.ab.unthinned <- tidyr::crossing(MeanCanopy =
-                                   seq(min(new.net$MeanCanopy, na.rm=TRUE),
-                                       max(new.net$MeanCanopy, na.rm=TRUE),
-                                       length.out=10),
-                                 Stand="364:UNF_Siuslaw",
-                                 Year = "2021",
-                                 ThinStatus = "N",
-                                 DoyStart = mean(new.net$DoyStart, na.rm=TRUE),
-                                 Weights = 1, 
-                                 WeightsPar = 1
-)
-
-pred_flab.unthinned <- fit.bombus %>%
-  epred_draws(newdata = newdata.fl.ab.unthinned,
-              resp = "VegAbundance",
-              allow_new_levels = TRUE)
-
-pred_flab <- rbind(pred_flab.thinned, pred_flab.unthinned)
-
-flower.ab.stand <- ggplot(pred_flab, aes(x = MeanCanopy,
-                                         y = .epred,
-                                         fill=ThinStatus)) +
-    stat_lineribbon(aes(linetype = ThinStatus, color = ThinStatus), alpha = .6, .width = .95) +
+flower.ab.stand <- ggplot(vabund, aes(x = MeanCanopy,
+                                      y = estimate__)) +
+    geom_line(aes(x = MeanCanopy, y=estimate__ ,
+                  color = ThinStatus)) +
+    geom_ribbon(aes(ymin = lower__, ymax = upper__, fill=ThinStatus,
+                    alpha=0.3)) +
     scale_fill_manual(values = c("darkolivegreen4", "forestgreen"),
-                      labels = c("Thinned 0.95", "Unthinned 0.95")) +
+                      labels = c("Thinned", "Unthinned")) +
     scale_color_manual(values = c("black", gray(.4))) +
     geom_point(data=new.net,
                aes(x=MeanCanopy, y=VegAbundance,
                    color = ThinStatus), cex=2) +
     geom_point(data=new.net,
                aes(x=MeanCanopy, y=VegAbundance), cex=2, pch=1) +
-    labs(x = "Canopy openness", y = "Flowering abundance (log)",
+    labs(x = "Canopy openness", y = "Flowering plant abundance",
          fill = "Credible interval") +
     theme_ms() +
-    theme(legend.position = "bottom") +
+    theme(legend.position = "none") +
     scale_x_continuous(
         breaks = axis.canopy,
         labels =  labs.canopy) +
@@ -523,9 +386,7 @@ flower.ab.stand <- ggplot(pred_flab, aes(x = MeanCanopy,
           axis.title.y = element_text(size=16),
           text = element_text(size=16)) 
 
-
 flower.ab.stand
-
 ggsave(flower.ab.stand, file="figures/vegabund_stand.pdf",
        height=4, width=5)
 
