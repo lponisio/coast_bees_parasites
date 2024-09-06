@@ -15,13 +15,12 @@ source("src/ggplotThemes.R")
 source("src/init.R")
 source("src/misc.R")
 
-library(gridExtra)
-library(grid)
-library(ggplot2)
-library(lattice)
-
 ## load model results and data
 load(file="saved/CrithidiaFitAllBee_coast.Rdata")
+
+## log + 1  "VegAbundance"
+## log "ForageDist_km", "rare.degree"
+
 
 ## ***********************************************************************
 ## scatterplot of canopy cover and dbh, highlighting thins 
@@ -32,7 +31,7 @@ stands <- spec.orig[!duplicated(spec.orig$StandRoundYear), ]
 standsplot <- stands %>% 
   ggplot(aes(x=DomTreeDiam_cm, y=MeanCanopy, color=ThinStatus)) +
   geom_point() + 
-  scale_color_manual(values = c("Y" = "#999999", "N" = "black"),
+  scale_color_manual(values = c("Y" = "gold", "N" = "maroon"),
                      labels=c('Not thinned', 'Thinned'),
                      name="Management history") +
   labs(x="Dominant tree class DBH (cm)", y="Canopy openness") +
@@ -129,11 +128,10 @@ bee.spp.bar <- ggplot(summary,
   geom_bar(stat = 'identity',
            aes(fill = factor(CanopyBin)), position = "dodge") +
   scale_fill_manual(values=c('#004D40', '#FFC107', 'lightblue'),
-                    name = "Canopy type", 
+                    name = "Canopy closure", 
                     labels=c('Closed', 'Intermediate', 'Open')) +
   theme_classic() +
-  theme(legend.position = "top",
-        axis.text.y = element_text(angle = 0, hjust = 1, 
+  theme(axis.text.y = element_text(angle = 0, hjust = 1, 
                                    face ='italic', color = 'black'),
         axis.text.x = element_text(color="black"),
         axis.title.y = element_text(size=14),
@@ -159,18 +157,19 @@ beesper <- bomb.orig %>%
   group_by(CanopyBin, GenusSpecies) %>% 
   summarise(count = n())
 
-bombsummary <- beesper %>% 
+summary <- beesper %>% 
   left_join(standstype, by="CanopyBin") %>% 
   mutate(avg = count.x/count.y) 
 
 #modifying to show prop of total
-bombus.spp.bar <- ggplot(bombsummary, 
+bombus.spp.bar <- ggplot(summary, 
                          aes(y = fct_reorder(GenusSpecies, avg, .desc = TRUE),
                              x = avg)) + 
   geom_bar(stat = 'identity',
-           aes(fill = factor(CanopyBin)), position = "dodge",
-           show.legend = F) +
-  scale_fill_manual(values=c('#004D40', '#FFC107', 'lightblue')) +
+           aes(fill = factor(CanopyBin)), position = "dodge") +
+  scale_fill_manual(values=c('#004D40', '#FFC107', 'lightblue'),
+                    name = "Canopy closure", 
+                    labels=c('Closed', 'Intermediate', 'Open')) +
   theme_classic() +
   theme(axis.text.y = element_text(angle = 0, hjust = 1, 
                                    face ='italic', color = 'black'),
@@ -187,6 +186,54 @@ bombus.spp.bar
 ggsave(bombus.spp.bar, file="figures/bombusSppbar.pdf",
        height=3, width=5)
 
+
+#plants per stand type
+# plantsper <- spec.orig %>% 
+#   group_by(CanopyBin, PlantGenusSpecies) %>% 
+#   summarise(count = n())
+# 
+# #add total stands in each stand type, + divide 
+# summary <- plantsper %>% 
+#   left_join(standstype, by="CanopyBin") %>% 
+#   mutate(avg = count.x/count.y) 
+# 
+# plant.spp.bar <- ggplot(summary, 
+#                          aes(y = fct_reorder(PlantGenusSpecies, avg, .desc = TRUE),
+#                              x = avg)) + 
+#   geom_bar(stat = 'identity',
+#            aes(fill = factor(CanopyBin)), position = "dodge") +
+#   theme_classic() +
+#   theme(axis.text.y = element_text(angle = 0, hjust = 1, 
+#                                    face ='italic', color = 'black'),
+#         axis.title.y = element_text(size=14),
+#         axis.title.x = element_text(size=14),
+#         text = element_text(size=14)) +
+#   labs(y=expression(paste('Species')), x='Average individuals 
+#        collected per stand type')
+# 
+# plant.spp.bar
+# 
+# 
+# #total bees collected (not per stand)
+# bombus.tot.bar <- ggplot(spec.orig, aes(y = fct_infreq(GenusSpecies))) + 
+#   geom_bar(stat = 'count',
+#            aes(fill = factor(age)), position = "dodge") +
+#   scale_fill_manual(values=c('darkorange4', 'darkorange', 'gold')) +
+#   theme_classic() +
+#   theme(axis.text.y = element_text(angle = 0, hjust = 1, 
+#                                    face ='italic', color = 'black'),
+#         axis.title.y = element_text(size=16),
+#         axis.title.x = element_text(size=16),
+#         text = element_text(size=16)) +
+#   labs(y=expression(paste('Species')), x='Number of \n Collected Individuals') +
+#   geom_text(stat='count', aes(label=..count..), hjust=-0.5) + 
+#   xlim(0, 100)
+# 
+# bombus.tot.bar
+# 
+# ggsave(bombus.tot.bar, file="figures/bombusTotbar.pdf",
+#        height=5, width=7.5)
+
 ##parasite counts
 parasite.count.table <- spec.orig %>%
   filter(Apidae == 1) %>%
@@ -202,16 +249,17 @@ parasite.count.table <- spec.orig %>%
 parasite.hist <- parasite.count.table %>%
   ggplot(aes(y= fct_infreq(ParasiteName))) + 
   geom_bar(stat = 'count',
-           aes(fill = factor(CanopyBin)), position = "dodge",
-           show.legend = F) +
-  scale_fill_manual(values=c('#004D40', '#FFC107', 'lightblue')) +
+           aes(fill = factor(CanopyBin)), position = "dodge") +
+  scale_fill_manual(values=c('#004D40', '#FFC107', 'lightblue'),
+                    name = "Canopy closure", 
+                    labels=c('Closed', 'Intermediate', 'Open')) +
   theme_classic() +
   theme(axis.text.y = element_text(angle = 0, hjust = 1, color = "black"),
-        axis.title.y = element_text(size=14),
-        axis.title.x = element_text(size=14),
+        axis.title.y = element_text(size=16),
+        axis.title.x = element_text(size=16),
         axis.text.x = element_text(color = "black"),
-        text = element_text(size=14)) +
-  labs(y='Parasite', x='Number of \n infected individuals') +
+        text = element_text(size=16)) +
+  labs(y='Parasite', x='Number of \n Infected Individuals') +
   xlim(0,75) +
   scale_y_discrete(labels=c("NosemaCeranae"=expression(italic('Nosema ceranae')),
                             "NosemaBombi"=expression(italic('Nosema bombi')),
@@ -227,18 +275,6 @@ parasite.hist
 ggsave(parasite.hist, file="figures/coastparasiteSppHist.pdf",
        height=3, width=5)
 
-## combining summary plots
-summaries <- grid.arrange(bee.spp.bar, 
-                          bombus.spp.bar, 
-                          parasite.hist, 
-                          nrow = 2,
-             layout_matrix = rbind(c(1, 2),
-                                   c(1, 3))
-)
-
-ggsave(summaries, file="figures/summaries.pdf",
-       height=9, width=11)
-
 ## ***********************************************************************
 ## prepping for newdata draws 
 ## ***********************************************************************
@@ -246,65 +282,67 @@ ggsave(summaries, file="figures/summaries.pdf",
 new.net <- spec.net[spec.net$Weights == 1, ]
 new.orig <- spec.orig[spec.orig$Weights == 1, ]
 
+## x and y labs
+labs.canopy <- pretty(c(0, new.orig$MeanCanopy), n=8)
+axis.canopy <- standardize.axis(labs.canopy,
+                                      new.orig$MeanCanopy)
+
+##  log + 1
+y.lab.fl.div <- (pretty(new.orig$VegDiversity, n=5))
+y.axis.fl.div <- standardize.axis(y.lab.fl.div,
+                                 new.orig$VegDiversity)
+
+
+y.labs.fl.ab <- pretty(new.orig$VegAbundance, n=10)
+y.axis.fl.ab <- standardize.axis(y.labs.fl.ab,
+                                 new.orig$VegAbundance)
+
 ## ***********************************************************************
 ## mean canopy ~ floral diversity
 ## ***********************************************************************
-
+## different slopes and intercepts for thinned/unthinned
 ## thinned
 newdata.fl.div.thinned <- tidyr::crossing(MeanCanopy =
                                     seq(min(new.net$MeanCanopy, na.rm = TRUE),
                                         max(new.net$MeanCanopy, na.rm = TRUE),
                                         length.out=10),
-                                  Stand="100:Camp",
+                                  Stand="305:LNF_Siuslaw",
                                   Year = "2021",
                                   ThinStatus = "Y",
                                   DoyStart = mean(new.net$DoyStart, na.rm = TRUE),
                                   Weights = 1,
                                   WeightsPar = 1
 )
-
 pred_fldiv.thinned <- fit.bombus %>%
   epred_draws(newdata = newdata.fl.div.thinned,
               resp = "VegDiversity",
               allow_new_levels = TRUE)
-
 
 ## unthinned
 newdata.fl.div.unthinned <- tidyr::crossing(MeanCanopy =
                                     seq(min(new.net$MeanCanopy, na.rm = TRUE),
                                         max(new.net$MeanCanopy, na.rm = TRUE),
                                         length.out=10),
-                                  Stand="100:Camp",
+                                  Stand="364:UNF_Siuslaw",
                                   Year = "2021",
                                   ThinStatus = "N",
                                   DoyStart = mean(new.net$DoyStart, na.rm = TRUE),
                                   Weights = 1,
                                   WeightsPar = 1
 )
-
 pred_fldiv.unthinned <- fit.bombus %>%
   epred_draws(newdata = newdata.fl.div.unthinned,
               resp = "VegDiversity",
               allow_new_levels = TRUE)
 
+## combine thin and unthinned 
 pred_fldiv <- rbind(pred_fldiv.thinned, pred_fldiv.unthinned)
-
-## x and y labs
-labs.canopy <- (pretty(c(0, new.orig$MeanCanopy), n=8))
-axis.canopy <- standardize.axis(labs.canopy,
-                                      new.orig$MeanCanopy)
-
-y.lab.fl.div <- (pretty(new.orig$VegDiversity, n=5))
-y.axis.fl.div <- standardize.axis(y.lab.fl.div,
-                                 new.orig$VegDiversity)
 
 
 veg.div.stand <- ggplot(pred_fldiv, aes(x = MeanCanopy,
                                         y = .epred,
                                         fill=ThinStatus)) +
     stat_lineribbon(aes(linetype = ThinStatus, color = ThinStatus), alpha = .6, .width = .95) +
-    ## scale_fill_manual(values = c(gray(.5, alpha=.5), gray(.75,
-    ##                                     alpha=.5)),
     scale_fill_manual(values = c("darkolivegreen4", "forestgreen"),
                       labels = c("Thinned 0.95", "Unthinned 0.95")) +
     scale_color_manual(values = c("black", gray(.4))) +
@@ -327,27 +365,6 @@ veg.div.stand <- ggplot(pred_fldiv, aes(x = MeanCanopy,
           axis.title.y = element_text(size=16),
           text = element_text(size=16)) 
 
-
-  ## only one thinned status  
-  ## stat_lineribbon() +
-  ## scale_fill_brewer(palette = "Greys") +
-  ## labs(y = "Flowering plant diversity", x = "Canopy openness",
-  ##      fill = "Credible interval") +
-  ## theme(legend.position = "bottom")  +
-  ## theme(axis.title.x = element_text(size=16),
-  ##       axis.title.y = element_text(size=16),
-  ##       text = element_text(size=16)) +
-  ## theme_ms() +
-  ## geom_point(data=new.net,
-  ##            aes(x=MeanCanopy, y=VegDiversity, color = ThinStatus), cex=2) +
-  ## scale_color_manual(values=c("#000000","#999999")) +
-  ## scale_x_continuous(
-  ##   labels = labs.canopy,
-  ##   breaks = axis.canopy) +
-  ## scale_y_continuous(
-  ##   labels = y.lab.fl.div,
-  ##   breaks = y.axis.fl.div) 
-
 veg.div.stand
 
 ggsave(veg.div.stand, file="figures/vegdiv_stand.pdf",
@@ -356,48 +373,72 @@ ggsave(veg.div.stand, file="figures/vegdiv_stand.pdf",
 ## ***********************************************************************
 ## mean canopy and floral abundance
 ## ***********************************************************************
-
-y.labs.fl.ab <- (pretty(exp(new.orig$VegAbundance), n=10))
-y.axis.fl.ab <- standardize.axis(y.labs.fl.ab,
-                                 exp(new.orig$VegAbundance))
-
-newdata.fl.ab <- tidyr::crossing(MeanCanopy =
+## different intercepts for thinned/unthinned
+## thinned
+newdata.fl.ab.thinned <- tidyr::crossing(MeanCanopy =
                                    seq(min(new.net$MeanCanopy, na.rm=TRUE),
                                        max(new.net$MeanCanopy, na.rm=TRUE),
                                        length.out=10),
-                                 Stand="100:Camp",
+                                 Stand="305:LNF_Siuslaw",
                                  Year = "2021",
+                                 ThinStatus = "Y",
                                  DoyStart = mean(new.net$DoyStart, na.rm=TRUE),
                                  Weights = 1, 
                                  WeightsPar = 1
 )
 
-pred_flab <- fit.bombus %>%
-  epred_draws(newdata = newdata.fl.ab,
+pred_flab.thinned <- fit.bombus %>%
+  epred_draws(newdata = newdata.fl.ab.thinned,
               resp = "VegAbundance",
               allow_new_levels = TRUE)
 
+
+## unthinned
+newdata.fl.ab.unthinned <- tidyr::crossing(MeanCanopy =
+                                   seq(min(new.net$MeanCanopy, na.rm=TRUE),
+                                       max(new.net$MeanCanopy, na.rm=TRUE),
+                                       length.out=10),
+                                 Stand="364:UNF_Siuslaw",
+                                 Year = "2021",
+                                 ThinStatus = "N",
+                                 DoyStart = mean(new.net$DoyStart, na.rm=TRUE),
+                                 Weights = 1, 
+                                 WeightsPar = 1
+)
+
+pred_flab.unthinned <- fit.bombus %>%
+  epred_draws(newdata = newdata.fl.ab.unthinned,
+              resp = "VegAbundance",
+              allow_new_levels = TRUE)
+
+pred_flab <- rbind(pred_flab.thinned, pred_flab.unthinned)
+
 flower.ab.stand <- ggplot(pred_flab, aes(x = MeanCanopy,
-                                         y = .epred)) +
-  stat_lineribbon() +
-  scale_fill_brewer(palette = "Blues") +
-  labs(y = str_wrap("Floral abundance", width =20),
-       x = "Canopy openness",
-       fill = "Credible interval") +
-  theme(legend.position = "bottom")  +
-  theme(axis.title.x = element_text(size=16),
-        axis.title.y = element_text(size=16),
-        text = element_text(size=16)) +
-  theme_ms() +
-  geom_point(data=new.net,
-             aes(x=MeanCanopy, y=VegAbundance, color = ThinStatus), cex=2) +
-  scale_color_manual(values=c("#000000","#999999")) +
-  scale_x_continuous(
-    breaks = axis.canopy,
-    labels = labs.canopy) +
-  scale_y_continuous(
-    breaks = y.axis.fl.ab,
-    labels = y.labs.fl.ab)
+                                         y = .epred,
+                                         fill=ThinStatus)) +
+    stat_lineribbon(aes(linetype = ThinStatus, color = ThinStatus), alpha = .6, .width = .95) +
+    scale_fill_manual(values = c("darkolivegreen4", "forestgreen"),
+                      labels = c("Thinned 0.95", "Unthinned 0.95")) +
+    scale_color_manual(values = c("black", gray(.4))) +
+    geom_point(data=new.net,
+               aes(x=MeanCanopy, y=VegAbundance,
+                   color = ThinStatus), cex=2) +
+    geom_point(data=new.net,
+               aes(x=MeanCanopy, y=VegAbundance), cex=2, pch=1) +
+    labs(x = "Canopy openness", y = "Flowering abundance (log)",
+         fill = "Credible interval") +
+    theme_ms() +
+    theme(legend.position = "bottom") +
+    scale_x_continuous(
+        breaks = axis.canopy,
+        labels =  labs.canopy) +
+    scale_y_continuous(
+        labels = y.labs.fl.ab,
+        breaks = y.axis.fl.ab) +
+    theme(axis.title.x = element_blank(),
+          axis.title.y = element_text(size=16),
+          text = element_text(size=16)) 
+
 
 flower.ab.stand
 
@@ -405,15 +446,8 @@ ggsave(flower.ab.stand, file="figures/vegabund_stand.pdf",
        height=4, width=5)
 
 ## ***********************************************************************
-## mean canopy and bee diversity
+## mean canopy and bee diversity - thinning matters
 ## ***********************************************************************
-
-labs.canopy <- (pretty(c(0, new.orig$MeanCanopy), n=8))
-axis.canopy <-  (pretty(c(0, new.orig$MeanCanopy), n=8))
-
-y.labs.bdiv <- (pretty(c(0, new.orig$BeeDiversity), n=10))
-y.axis.bdiv <- standardize.axis(y.labs.bdiv,
-                                 new.orig$BeeDiversity)
 
 newdata.bee.div <- tidyr::crossing(MeanCanopy =
                                      seq(min(new.net$MeanCanopy, na.rm=TRUE),
@@ -444,7 +478,7 @@ bee.div.stand <- ggplot(pred_beediv, aes(x = MeanCanopy,
   scale_y_continuous(
     breaks = y.axis.bdiv,
     labels = y.labs.bdiv) +
-  labs(y = str_wrap("Bee diversity", width =20),
+  labs(y = str_wrap("Bee Diversity", width =20),
        x = "Canopy openness",
        fill = "Credible interval") +
   theme(legend.position = "bottom")  +
@@ -580,7 +614,7 @@ ggsave(bee.div.plant, file="figures/beediv_veg.pdf",
 #                                     new.orig$VegAbundance)
 #                             
 labs.fl.ab <- (pretty(exp(new.orig$VegAbundance), n=10))
-axis.fl.ab <- standardize.axis(labs.fl.ab,
+axis.fl.ab <- standardize.axis(y.labs.fl.ab,
                                  exp(new.orig$VegAbundance))
 
 
@@ -1091,21 +1125,19 @@ ggsave(parasite.diet, file="figures/parasite_diet.pdf",
 #canopy and veg 
 scatter.1 <- grid.arrange(veg.div.stand,
                           flower.ab.stand,
-                          bee.div.stand,
-                          bee.ab.stand,
                           ncol=2)
 
-ggsave(scatter.1, file="figures/canopyplots.pdf",
-       height=6, width=9)
+ggsave(scatter.1, file="figures/vegcanopy.pdf",
+       height=3, width=9)
 
 
 #canopy and bees
-# scatter.2 <- grid.arrange(bee.div.stand,
-#                           bee.ab.stand,
-#                           ncol=2)
-# 
-# ggsave(scatter.2, file="figures/beecanopy.pdf",
-#        height=3, width=9)
+scatter.2 <- grid.arrange(bee.div.stand,
+                          bee.ab.stand,
+                          ncol=2)
+
+ggsave(scatter.2, file="figures/beecanopy.pdf",
+       height=3, width=9)
 
 #veg div/bee div and veg ab/bee ab                    
 scatter.3 <- grid.arrange(bee.div.plant,
@@ -1131,56 +1163,8 @@ scatter.5 <- grid.arrange(parasite.fd,
 ggsave(scatter.5, file="figures/CRdietforage.pdf",
        height=3, width=9)
 
-
-##Deprecated summary plots: 
-#
-##plants per stand type
-# plantsper <- spec.orig %>% 
-#   group_by(CanopyBin, PlantGenusSpecies) %>% 
-#   summarise(count = n())
-# 
-# #add total stands in each stand type, + divide 
-# summary <- plantsper %>% 
-#   left_join(standstype, by="CanopyBin") %>% 
-#   mutate(avg = count.x/count.y) 
-# 
-# plant.spp.bar <- ggplot(summary, 
-#                          aes(y = fct_reorder(PlantGenusSpecies, avg, .desc = TRUE),
-#                              x = avg)) + 
-#   geom_bar(stat = 'identity',
-#            aes(fill = factor(CanopyBin)), position = "dodge") +
-#   theme_classic() +
-#   theme(axis.text.y = element_text(angle = 0, hjust = 1, 
-#                                    face ='italic', color = 'black'),
-#         axis.title.y = element_text(size=14),
-#         axis.title.x = element_text(size=14),
-#         text = element_text(size=14)) +
-#   labs(y=expression(paste('Species')), x='Average individuals 
-#        collected per stand type')
-# 
-# plant.spp.bar
-# 
-# 
-##total bees collected (not per stand)
-# bombus.tot.bar <- ggplot(spec.orig, aes(y = fct_infreq(GenusSpecies))) + 
-#   geom_bar(stat = 'count',
-#            aes(fill = factor(age)), position = "dodge") +
-#   scale_fill_manual(values=c('darkorange4', 'darkorange', 'gold')) +
-#   theme_classic() +
-#   theme(axis.text.y = element_text(angle = 0, hjust = 1, 
-#                                    face ='italic', color = 'black'),
-#         axis.title.y = element_text(size=16),
-#         axis.title.x = element_text(size=16),
-#         text = element_text(size=16)) +
-#   labs(y=expression(paste('Species')), x='Number of \n Collected Individuals') +
-#   geom_text(stat='count', aes(label=..count..), hjust=-0.5) + 
-#   xlim(0, 100)
-# 
-# bombus.tot.bar
-# 
-# ggsave(bombus.tot.bar, file="figures/bombusTotbar.pdf",
-#        height=5, width=7.5)
-## Deprecated parasite plots:  
+# #############
+# Deprecated parasite plots:  
 # 
 # labs.veg.div <- (pretty(spec.net$FlowerRareRichness, n=8))
 # axis.veg.div <-  standardize.axis(labs.veg.div,
@@ -1229,7 +1213,6 @@ ggsave(scatter.5, file="figures/CRdietforage.pdf",
 # 
 # ggsave(veg.div.parasite, file="figures/parasite_vegDiv.pdf",
 #        height=4, width=5)
-
 
 ############################
 
