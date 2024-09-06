@@ -54,18 +54,18 @@ run_plot_freq_model_diagnostics <- function(this_formula, #brms model formula
         diagnostic.plots <- plot(check_model(this_model_output, panel = TRUE))
         
         
-    } else if (this_family=='hurdle_poisson') {
-        ## really zero inflated... but close
+    } else if (this_family == 'hurdle_poisson' | this_family == 'zero_inflated_poisson') {
+        ## really just zero inflated... but close
         this_model_output <- glmmTMB(this_formula, data=this_data,
                                      ziformula = ~.,
-                                     family = truncated_poisson())
+                                     family = poisson())
         diagnostic.plots <- plot(check_model(this_model_output, panel = TRUE))
         
-    } else if (this_family=='hurdle_negbinomial') {
-        ## really zero inflated... but close
+    } else if (this_family=='hurdle_negbinomial' | this_family == 'zero_inflated_negbinomial' ) {
+        ## really just zero inflated... but close
         this_model_output <- glmmTMB(this_formula, data=this_data,
                                      ziformula = ~1,
-                                     family = truncated_nbinom2())
+                                     family = nbinom2())
         diagnostic.plots <- plot(check_model(this_model_output, panel = TRUE))
         
 
@@ -94,12 +94,15 @@ run_plot_freq_model_diagnostics <- function(this_formula, #brms model formula
     } else if (this_family == 'Gamma'){
         
         this_model_output <- glmer(this_formula, data=this_data, family=Gamma(link=log))
-        
-                                        # return a list of single plots
+                                      
         diagnostic.plots <- plot(check_model(this_model_output, 
                                              panel = TRUE))
-
-
+    } else if (this_family == 'hurdle_gamma'){
+         this_model_output <- glmmTMB(this_formula, data=this_data,
+                                     ziformula = ~1,
+                                     family = ziGamma())
+        diagnostic.plots <- plot(check_model(this_model_output, panel = TRUE))
+        
     } else if (this_family == 'inverse.gaussian'){
         
         this_model_output <- brms::brm(this_formula,
@@ -118,16 +121,7 @@ run_plot_freq_model_diagnostics <- function(this_formula, #brms model formula
 
     } else if (this_family == 'poisson'){
         
-        this_model_output <- brms::brm(this_formula,
-                                       data = this_data, 
-                                       chains = num_chains, 
-                                       iter = num_iter, family=this_family,
-                                       thin=1,
-                                       init=0,
-                                       open_progress = FALSE,
-                                       control = list(adapt_delta = 0.99),
-                                       save_pars = save_pars(all = TRUE))
-                                        # return a list of single plots
+        this_model_output <- glmer(this_formula, data=this_data, family="poisson")
         diagnostic.plots <- plot(check_model(this_model_output, 
                                              panel = TRUE), type = "discrete_dots")
 

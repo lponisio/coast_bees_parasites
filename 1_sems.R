@@ -9,7 +9,7 @@ setwd("~/Dropbox (University of Oregon)/coast_bees_parasites")
 rm(list=ls())
 
 ## set to the number of cores you would like the models to run on
-ncores <- 2
+ncores <- 3
 
 load("data/spec_net_coast.Rdata")
 source("src/init.R")
@@ -62,7 +62,9 @@ vars_sp_yearsr <- c("rare.degree")
 
 ## variables to log but add 1 first (due to zeros)
 variables.to.log.p1 <- c(
-    "VegAbundance"
+    "VegAbundance",
+    "BeeAbundance",
+    "BeeDiversity"
 )
 
 ## variables to log
@@ -133,6 +135,23 @@ formula.bee.abund <- formula(BeeAbundance | subset(Weights)~
                                      (1|Stand)  
                              )
 
+
+
+formula.bee.div.hu <- formula(hu ~
+                                  VegDiversity +
+                                  TempCStart +
+                                  MeanCanopy +
+                                  (1|Stand) 
+                              )
+
+formula.bee.abund.hu <- formula(hu ~
+                                    VegAbundance +
+                                    TempCStart +
+                                    MeanCanopy +
+                                    (1|Stand)  
+                                )
+
+
 ## **********************************************************
 ## Model 1.3: formula for bee community effects on parasitism
 ## **********************************************************
@@ -177,8 +196,10 @@ formula.crithidia <-  runParasiteModels(spec.net, "bombus",
 
 bf.fdiv <- bf(formula.flower.div, family="student")
 bf.fabund <- bf(formula.flower.abund, family = "gaussian")
-bf.bdiv <- bf(formula.bee.div, family="hurdle_lognormal")
-bf.babund <- bf(formula.bee.abund, family = "hurdle_poisson")
+bf.bdiv <- bf(formula.bee.div, hu=formula.bee.div.hu,
+              family="hurdle_gamma")
+bf.babund <- bf(formula.bee.abund, hu=formula.bee.abund.hu,
+                family = "hurdle_lognormal")
 
 ## convert to brms format
 bf.par <- bf(formula.crithidia, family="bernoulli")
@@ -203,14 +224,14 @@ run_plot_freq_model_diagnostics(remove_subset_formula(formula.flower.abund),
 ## inflated)
 run_plot_freq_model_diagnostics(remove_subset_formula(formula.bee.div),
                                 this_data=spec.net[spec.net$Weights == 1,],
-                                this_family="hurdle_lognormal")
+                                this_family="hurdle_gamma")
 
 ## potentially an issue with homogeneity of variance, hard to say
 ## because no support for checking hurdle models (only zero
 ## inflated)
 run_plot_freq_model_diagnostics(remove_subset_formula(formula.bee.abund),
                                 this_data=spec.net[spec.net$Weights == 1,],
-                                this_family="hurdle_poisson")
+                                this_family="hurdle_lognormal")
 
 freq.formula <- as.formula(paste("HasCrithidia",
                                  paste(xvars.coast[-length(xvars.coast)],
