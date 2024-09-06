@@ -4,7 +4,7 @@ library(bayestestR)
 
 ## general
 library(dplyr)
-library(tidyverse)
+#library(tidyverse)
 
 ## plotting
 library(ggplot2)
@@ -16,8 +16,8 @@ library(viridis)
 library(gridExtra)
 
 ## trees
-library(phytools)
-library(ggtree)
+## library(phytools)
+## library(ggtree)
 
 save.dir0 <- "saved/"
 if(!dir.exists(save.dir0)) {

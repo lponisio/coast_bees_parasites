@@ -250,7 +250,8 @@ new.orig <- spec.orig[spec.orig$Weights == 1, ]
 ## mean canopy ~ floral diversity
 ## ***********************************************************************
 
-newdata.fl.div <- tidyr::crossing(MeanCanopy =
+## thinned
+newdata.fl.div.thinned <- tidyr::crossing(MeanCanopy =
                                     seq(min(new.net$MeanCanopy, na.rm = TRUE),
                                         max(new.net$MeanCanopy, na.rm = TRUE),
                                         length.out=10),
@@ -262,39 +263,90 @@ newdata.fl.div <- tidyr::crossing(MeanCanopy =
                                   WeightsPar = 1
 )
 
-pred_fldiv <- fit.bombus %>%
-  epred_draws(newdata = newdata.fl.div,
+pred_fldiv.thinned <- fit.bombus %>%
+  epred_draws(newdata = newdata.fl.div.thinned,
               resp = "VegDiversity",
               allow_new_levels = TRUE)
 
-labs.canopy <- (pretty(c(0, new.orig$MeanCanopy), n=8))
-axis.canopy <- (pretty(c(0, new.orig$MeanCanopy), n=8))
 
-y.lab.fl.div <- (pretty(exp(new.orig$VegDiversity), n=5))
+## unthinned
+newdata.fl.div.unthinned <- tidyr::crossing(MeanCanopy =
+                                    seq(min(new.net$MeanCanopy, na.rm = TRUE),
+                                        max(new.net$MeanCanopy, na.rm = TRUE),
+                                        length.out=10),
+                                  Stand="100:Camp",
+                                  Year = "2021",
+                                  ThinStatus = "N",
+                                  DoyStart = mean(new.net$DoyStart, na.rm = TRUE),
+                                  Weights = 1,
+                                  WeightsPar = 1
+)
+
+pred_fldiv.unthinned <- fit.bombus %>%
+  epred_draws(newdata = newdata.fl.div.unthinned,
+              resp = "VegDiversity",
+              allow_new_levels = TRUE)
+
+pred_fldiv <- rbind(pred_fldiv.thinned, pred_fldiv.unthinned)
+
+## x and y labs
+labs.canopy <- (pretty(c(0, new.orig$MeanCanopy), n=8))
+axis.canopy <- standardize.axis(labs.canopy,
+                                      new.orig$MeanCanopy)
+
+y.lab.fl.div <- (pretty(new.orig$VegDiversity, n=5))
 y.axis.fl.div <- standardize.axis(y.lab.fl.div,
-                                 exp(new.orig$VegDiversity))
+                                 new.orig$VegDiversity)
 
 
 veg.div.stand <- ggplot(pred_fldiv, aes(x = MeanCanopy,
-                                        y = .epred)) +
-  stat_lineribbon() +
-  scale_fill_brewer(palette = "Greys") +
-  labs(y = "Flowering plant diversity", x = "Canopy openness",
-       fill = "Credible interval") +
-  theme(legend.position = "bottom")  +
-  theme(axis.title.x = element_text(size=16),
-        axis.title.y = element_text(size=16),
-        text = element_text(size=16)) +
-  theme_ms() +
-  geom_point(data=new.net,
-             aes(x=MeanCanopy, y=VegDiversity, color = ThinStatus), cex=2) +
-  scale_color_manual(values=c("#000000","#999999")) +
-  scale_x_continuous(
-    labels = labs.canopy,
-    breaks = axis.canopy) +
-  scale_y_continuous(
-    labels = y.lab.fl.div,
-    breaks = y.axis.fl.div) 
+                                        y = .epred,
+                                        fill=ThinStatus)) +
+    stat_lineribbon(aes(linetype = ThinStatus, color = ThinStatus), alpha = .6, .width = .95) +
+    ## scale_fill_manual(values = c(gray(.5, alpha=.5), gray(.75,
+    ##                                     alpha=.5)),
+    scale_fill_manual(values = c("darkolivegreen4", "forestgreen"),
+                      labels = c("Thinned 0.95", "Unthinned 0.95")) +
+    scale_color_manual(values = c("black", gray(.4))) +
+    geom_point(data=new.net,
+               aes(x=MeanCanopy, y=VegDiversity,
+                   color = ThinStatus), cex=2) +
+    geom_point(data=new.net,
+               aes(x=MeanCanopy, y=VegDiversity), cex=2, pch=1) +
+    labs(x = "Canopy openness", y = "Flowering plant diversity",
+         fill = "Credible interval") +
+    theme_ms() +
+    theme(legend.position = "bottom") +
+    scale_x_continuous(
+        breaks = axis.canopy,
+        labels =  labs.canopy) +
+    scale_y_continuous(
+        labels = y.lab.fl.div,
+        breaks = y.axis.fl.div) +
+    theme(axis.title.x = element_blank(),
+          axis.title.y = element_text(size=16),
+          text = element_text(size=16)) 
+
+
+  ## only one thinned status  
+  ## stat_lineribbon() +
+  ## scale_fill_brewer(palette = "Greys") +
+  ## labs(y = "Flowering plant diversity", x = "Canopy openness",
+  ##      fill = "Credible interval") +
+  ## theme(legend.position = "bottom")  +
+  ## theme(axis.title.x = element_text(size=16),
+  ##       axis.title.y = element_text(size=16),
+  ##       text = element_text(size=16)) +
+  ## theme_ms() +
+  ## geom_point(data=new.net,
+  ##            aes(x=MeanCanopy, y=VegDiversity, color = ThinStatus), cex=2) +
+  ## scale_color_manual(values=c("#000000","#999999")) +
+  ## scale_x_continuous(
+  ##   labels = labs.canopy,
+  ##   breaks = axis.canopy) +
+  ## scale_y_continuous(
+  ##   labels = y.lab.fl.div,
+  ##   breaks = y.axis.fl.div) 
 
 veg.div.stand
 
@@ -304,9 +356,6 @@ ggsave(veg.div.stand, file="figures/vegdiv_stand.pdf",
 ## ***********************************************************************
 ## mean canopy and floral abundance
 ## ***********************************************************************
-
-labs.canopy <- (pretty(c(0, new.orig$MeanCanopy), n=8))
-axis.canopy <-  (pretty(c(0, new.orig$MeanCanopy), n=8))
 
 y.labs.fl.ab <- (pretty(exp(new.orig$VegAbundance), n=10))
 y.axis.fl.ab <- standardize.axis(y.labs.fl.ab,

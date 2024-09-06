@@ -9,7 +9,7 @@ setwd("~/Dropbox (University of Oregon)/coast_bees_parasites")
 rm(list=ls())
 
 ## set to the number of cores you would like the models to run on
-ncores <- 1
+ncores <- 2
 
 load("data/spec_net_coast.Rdata")
 source("src/init.R")
@@ -99,17 +99,17 @@ spec.net <- prepDataSEM(spec.net, variables.to.log, variables.to.log.p1,
 
 formula.flower.div <- formula(VegDiversity | subset(Weights) ~
                                   DoyStart + I(DoyStart^2) +
-                                      MeanCanopy +
-                                      Year + ThinStatus +
+                                      MeanCanopy*ThinStatus +
+                                      Year +
                                       (1|Stand) 
                               )
 
 ## flower abund with simpson div
 formula.flower.abund <- formula(VegAbundance | subset(Weights) ~
                                     DoyStart +  I(DoyStart^2) +
-                                        MeanCanopy +
-                                        I(MeanCanopy^2) +
-                                        Year + ThinStatus +
+                                        MeanCanopy*ThinStatus +
+                                        ## I(MeanCanopy^2)*ThinStatus +
+                                        Year +
                                         (1|Stand)
                                 )
 
@@ -120,16 +120,16 @@ formula.flower.abund <- formula(VegAbundance | subset(Weights) ~
 formula.bee.div <- formula(BeeDiversity | subset(Weights)~
                                VegDiversity +
                                    TempCStart +
-                                   MeanCanopy +
-                                   Year + ThinStatus +
+                                   MeanCanopy*ThinStatus +
+                                   Year +
                                    (1|Stand) 
                            )
 
 formula.bee.abund <- formula(BeeAbundance | subset(Weights)~
                                  VegAbundance +
                                      TempCStart +
-                                     MeanCanopy +
-                                     Year + ThinStatus +
+                                     MeanCanopy*ThinStatus +
+                                     Year +
                                      (1|Stand)  
                              )
 
@@ -197,7 +197,6 @@ run_plot_freq_model_diagnostics(remove_subset_formula(formula.flower.div),
 run_plot_freq_model_diagnostics(remove_subset_formula(formula.flower.abund),
                                 this_data=spec.net[spec.net$Weights == 1,],
                                 this_family="gaussian")
-## VIF for canopy and canopy^2 are high, but that is expected.
 
 ## potentially an issue with homogeneity of variance, hard to say
 ## because no support for checking hurdle lognormal  models (only zero
@@ -227,7 +226,7 @@ run_plot_freq_model_diagnostics(freq.formula,
 fit.bombus <- brm(bform, spec.net,
                   cores=ncores,
                   iter = 10^4,
-                  chains =1,
+                  chains =3,
                   thin=1,
                   init=0,
                   open_progress = FALSE,
