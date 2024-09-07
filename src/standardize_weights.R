@@ -132,8 +132,8 @@ prepDataSEM <-
                 standardizeVars(spec.data, vars_sp, "GenusSpecies", by.stand=FALSE)
         }
         if(!is.null(vars_year)){
-            print("Standardizing variables with year, sampling round, stand combinations")
-            spec.data <- standardizeVars(spec.data, vars_yearsr, "YearSR")
+            print("Standardizing variables with year, stand combinations")
+            spec.data <- standardizeVars(spec.data, vars_year, "Year")
         }
 
         if(!is.null(vars_sp_yearsr)){
@@ -141,10 +141,6 @@ prepDataSEM <-
             spec.data <- standardizeVars(spec.data, vars_sp_yearsr, "YearSRGenusSpecies")
         }
 
-        if(!is.null(vars_sp_yearsr)){
-            print("Standardizing variables with year, sampling round, stand, species combinations")
-            spec.data <- standardizeVars(spec.data, vars_sp_yearsr, "YearSRGenusSpecies")
-        }
     }
     
     ## create a dumby varaible "WeightPar" for the parasite data. The
