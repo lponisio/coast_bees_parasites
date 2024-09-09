@@ -26,6 +26,7 @@ load(file="saved/CrithidiaFitAllBee_coast.Rdata")
 ## ***********************************************************************
 ## scatterplot of canopy cover and dbh, highlighting thins 
 ## ***********************************************************************
+
 stands <- spec.orig[!duplicated(spec.orig$StandRoundYear), ]
 
 standsplot <- stands %>% 
@@ -50,6 +51,7 @@ ggsave(standsplot, file="figures/canopyDBH.pdf",
 ## ***********************************************************************
 ## descriptive bar charts
 ## ***********************************************************************
+
 #binning canopy - remember that canopy is unintuitive and 0-25 is lowest
 spec.orig$CanopyBin <- cut(spec.orig$MeanCanopy,
                      breaks = c(0, 25, 75, 100), 
@@ -82,15 +84,6 @@ stats2 <- spec.orig.2 %>%
   summarise(meanbee =mean(BeeDiversity),
             sdbee = sd(BeeDiversity)) 
 
-<<<<<<< HEAD
-##summarize flowers per n type of stand in each category
-##find stands per stand type 
-# standstype <- spec.orig %>% 
-#   group_by(age, PlantGenusSpecies) %>% 
-#   summarise(count = n())
-
-=======
->>>>>>> 5d522bbe57277d5757fa8d0777b9eba1ba562ad2
 spec.orig <- spec.orig[!is.na(spec.orig$CanopyBin),]
 
 #per canopy type mean and sd of veg abund/diversity
@@ -98,7 +91,9 @@ closed <- spec.orig[spec.orig$CanopyBin %in% c("[0,25)"),]
 intermed <- spec.orig[spec.orig$CanopyBin %in% c("[25,75)"),]
 open <- spec.orig[spec.orig$CanopyBin %in% c("[75,100]"),]
 
+
 ####bee genus bars
+
 #summarize individuals per n type of stand in each category
 standstype <- spec.orig %>% 
   group_by(CanopyBin) %>% 
@@ -110,8 +105,7 @@ beesper <- spec.orig %>%
 
 summary <- beesper %>% 
   left_join(standstype, by="CanopyBin") %>% 
-  mutate(avg = count.x/count.y) %>% 
-  filter(!is.na(Genus))
+  mutate(avg = count.x/count.y) 
 
 ## ***********************************************************************
 ## all bee genus bar graph
@@ -130,14 +124,12 @@ bee.spp.bar <- ggplot(summary,
   theme(axis.text.y = element_text(angle = 0, hjust = 1, 
                                    face ='italic', color = 'black'),
         axis.text.x = element_text(color="black"),
-        axis.title.y = element_text(size=15),
-        axis.title.x = element_text(size=15),
+        axis.title.y = element_text(size=14),
+        axis.title.x = element_text(size=14),
         axis.ticks = element_line(color = "black"),
-        text = element_text(size=15),
-        plot.tag = element_text(),
-        plot.tag.position = c(0.9, 0.92)) +
+        text = element_text(size=14)) +
   labs(y=expression(paste('Genus')), x='Average individuals
-       collected per canopy type', tag = "a)")
+       collected per canopy type')
 
 bee.spp.bar
 
@@ -172,14 +164,12 @@ bombus.spp.bar <- ggplot(summary,
   theme(axis.text.y = element_text(angle = 0, hjust = 1, 
                                    face ='italic', color = 'black'),
         axis.text.x = element_text(color="black"),
-        axis.title.y = element_text(size=15),
-        axis.title.x = element_text(size=15),
+        axis.title.y = element_text(size=14),
+        axis.title.x = element_text(size=14),
         axis.ticks = element_line(color = "black"),
-        text = element_text(size=15),
-        plot.tag = element_text(),
-        plot.tag.position = c(0.9, 0.95)) +
+        text = element_text(size=14)) +
   labs(y=expression(paste('Species')), x='Average individuals
-       collected per canopy type', tag = "b)")
+       collected per canopy type')
 
 bombus.spp.bar
 
@@ -198,6 +188,7 @@ parasite.count.table <- spec.orig %>%
                names_to = 'ParasiteName', values_to = 'HasParasite') %>%
   filter(HasParasite == 1)
 
+#using #4C4C5A
 parasite.hist <- parasite.count.table %>%
   ggplot(aes(y= fct_infreq(ParasiteName))) + 
   geom_bar(stat = 'count',
@@ -207,22 +198,11 @@ parasite.hist <- parasite.count.table %>%
                     labels=c('Closed', 'Intermediate', 'Open')) +
   theme_classic() +
   theme(axis.text.y = element_text(angle = 0, hjust = 1, color = "black"),
-<<<<<<< HEAD
-        axis.title.y = element_text(size=15),
-        axis.title.x = element_text(size=15),
-        axis.text.x = element_text(color = "black"),
-        text = element_text(size=15),
-        plot.tag = element_text(),
-        plot.tag.position = c(0.9, 0.9)) +
-  labs(y='Parasite', x='Number of \n infected individuals',
-       tag = "c)") +
-=======
         axis.title.y = element_text(size=16),
         axis.title.x = element_text(size=16),
         axis.text.x = element_text(color = "black"),
         text = element_text(size=16)) +
   labs(y='Parasite', x='Number of \n Infected Individuals') +
->>>>>>> 5d522bbe57277d5757fa8d0777b9eba1ba562ad2
   xlim(0,75) +
   scale_y_discrete(labels=c("NosemaCeranae"=expression(italic('Nosema ceranae')),
                             "NosemaBombi"=expression(italic('Nosema bombi')),
@@ -253,24 +233,34 @@ axis.canopy <- standardize.axis(labs.canopy,
 
 ##  log + 1
 ## floral diversity
-y.labs.fdiv <- (pretty(new.orig$VegDiversity, n=5))
-y.axis.fdiv <- standardize.axis(y.labs.fdiv,
+labs.fdiv <- (pretty(new.orig$VegDiversity, n=5))
+axis.fdiv <- standardize.axis(labs.fdiv,
                                  new.orig$VegDiversity)
 
 ## floral abundance
-y.labs.fabund <- pretty(new.orig$VegAbundance, n=10)
-y.axis.fabund <- standardize.axis(y.labs.fabund,
+labs.fabund <- pretty(new.orig$VegAbundance, n=10)
+axis.fabund <- standardize.axis(labs.fabund,
                                  new.orig$VegAbundance)
 
 ## bee diversity
-y.labs.bdiv <- pretty(new.orig$BeeDiversity, n=10)
-y.axis.bdiv <- standardize.axis(y.labs.bdiv,
+labs.bdiv <- pretty(new.orig$BeeDiversity, n=10)
+axis.bdiv <- standardize.axis(labs.bdiv,
                                  new.orig$BeeDiversity)
 
 ## bee abund
-y.labs.babund <- pretty(new.orig$BeeAbundance, n=10)
-y.axis.babund <- standardize.axis(y.labs.babund,
+labs.babund <- pretty(new.orig$BeeAbundance, n=10)
+axis.babund <- standardize.axis(labs.babund,
                                  new.orig$BeeAbundance)
+
+## foraging distance km
+labs.forage.dist <- pretty(new.orig$ForageDist_km, n=10)
+axis.forage.dist <- standardize.axis(labs.forage.dist,
+                                 new.orig$ForageDist_km)
+
+## degree (diet breadth)
+labs.degree <- pretty(new.orig$rare.degree, n=10)
+axis.degree <- standardize.axis(labs.degree,
+                                 new.orig$rare.degree)
 
 
 ## ***********************************************************************
@@ -308,8 +298,8 @@ vdiv.stand <- ggplot(vdiv, aes(x = MeanCanopy,
         breaks = axis.canopy,
         labels =  labs.canopy) +
     scale_y_continuous(
-        labels = y.labs.fdiv,
-        breaks = y.axis.fdiv) +
+        labels = labs.fdiv,
+        breaks = axis.fdiv) +
     theme(axis.title.x = element_blank(),
           axis.title.y = element_text(size=16),
           text = element_text(size=16)) 
@@ -347,8 +337,8 @@ vabund.stand <- ggplot(vabund, aes(x = MeanCanopy,
         breaks = axis.canopy,
         labels =  labs.canopy) +
     scale_y_continuous(
-        labels = y.labs.fabund,
-        breaks = y.axis.fabund) +
+        labels = labs.fabund,
+        breaks = axis.fabund) +
     theme(axis.title.x = element_blank(),
           axis.title.y = element_text(size=16),
           text = element_text(size=16)) 
@@ -387,8 +377,8 @@ bdiv.stand <- ggplot(bdiv, aes(x = MeanCanopy,
         breaks = axis.canopy,
         labels =  labs.canopy) +
     scale_y_continuous(
-        labels = y.labs.bdiv,
-        breaks = y.axis.bdiv) +
+        labels = labs.bdiv,
+        breaks = axis.bdiv) +
     theme(axis.title.x = element_blank(),
           axis.title.y = element_text(size=16),
           text = element_text(size=16)) 
@@ -423,10 +413,10 @@ babund.stand <- ggplot(babund, aes(x = MeanCanopy,
     scale_x_continuous(
         breaks = axis.canopy,
         labels =  labs.canopy) +
-    lims(y=c(0, max(y.axis.babund)))+
+    lims(y=c(0, max(axis.babund)))+
     scale_y_continuous(
-        labels = y.labs.babund,
-        breaks = y.axis.babund) +
+        labels = labs.babund,
+        breaks = axis.babund) +
     theme(axis.title.x = element_blank(),
           axis.title.y = element_text(size=16),
           text = element_text(size=16)) 
@@ -461,11 +451,11 @@ babund.fabund.p <- ggplot(babund.fabund, aes(x = VegAbundance,
     theme_ms() +
     theme(legend.position = "none") +
     scale_x_continuous(
-        breaks = y.axis.fabund,
-        labels =  y.labs.fabund) +
+        breaks = axis.fabund,
+        labels =  labs.fabund) +
     scale_y_continuous(
-        labels = y.labs.babund,
-        breaks = y.axis.babund) +
+        labels = labs.babund,
+        breaks = axis.babund) +
     theme(axis.title.x = element_blank(),
           axis.title.y = element_text(size=16),
           text = element_text(size=16)) 
@@ -480,48 +470,34 @@ babund.fabund.p
 ## parasitism ~ foraging dist
 ## ***********************************************************************
 
-newdata.fd <- tidyr::crossing(ForageDist_km =
-                                      seq(min(data.par$ForageDist_km),
-                                          max(data.par$ForageDist_km),
-                                          length.out=10),
-                                    Stand="100:Camp",
-                                    Year = "2020",
-                                    TempCStart = mean(data.par$TempCStart),
-                                    VegDiversity = mean(data.par$VegDiversity),
-                                    BeeAbundance = mean(data.par$BeeAbundance),
-                                    rare.degree = mean(data.par$rare.degree, na.rm = TRUE),
-                                    BeeDiversity = mean(data.par$BeeDiversity),
-                                    Weights = 1,
-                                    WeightsPar = 1
-                                    
-)
+crithidia.foraging.dist <-
+    hurdle.cond.effects[["HasCrithidia.HasCrithidia_ForageDist_km"]]
 
-pred_fd <- fit.bombus %>%
-  epred_draws(newdata = newdata.fd,
-              resp = "HasCrithidia",
-              allow_new_levels = TRUE)
+crithidia.foraging.dist.p <-
+    ggplot(crithidia.foraging.dist, aes(x = ForageDist_km,
+                                        y = estimate__)) +
+    geom_line(aes(x = ForageDist_km, y=estimate__ )) +
+    geom_ribbon(aes(ymin = lower__, ymax = upper__,
+                    alpha=0.3)) +
+    scale_fill_manual(values = c("dodgerblue")) +
+    scale_color_manual(values = c("black", gray(.4))) +
+    geom_point(data=new.net,
+               aes(x=ForageDist_km, y=HasCrithidia,
+                   color = ThinStatus), cex=2) +
+    geom_point(data=new.net,
+               aes(x=ForageDist_km, y=HasCrithidia), cex=2, pch=1) +
+    labs(x = "Foraging distance (km)", y = "Crithidia prevalence",
+         fill = "Credible interval") +
+    theme_ms() +
+    theme(legend.position = "none") +
+    scale_x_continuous(
+        breaks = axis.forage.dist,
+        labels =  labs.forage.dist) +
+    theme(axis.title.x = element_blank(),
+          axis.title.y = element_text(size=16),
+          text = element_text(size=16)) 
 
-
-parasite.fd <- ggplot(pred_fd, aes(x = ForageDist_km, y =
-                                                  .epred)) +
-  stat_lineribbon() +
-  scale_fill_brewer(palette = "Blues") +
-  labs(x = "Foraging distance (km)", y = "Stand *Crithidia* rate",
-       fill = "Credible interval") +
-  theme(legend.position = "bottom")  +
-  theme(axis.title.x = element_text(size=16),
-        axis.title.y = element_text(size=16),
-        text = element_text(size=16)) +
-  theme_ms() +
-  theme(axis.title.x = ggtext::element_markdown(),
-        axis.title.y = ggtext::element_markdown()) +
-  geom_point(data=data.par,
-             aes(y=SpStandCrithidiaRate, x=ForageDist_km), cex=2)
-
-parasite.fd
-
-ggsave(parasite.fd, file="figures/parasite_fd.pdf",
-       height=4, width=5)
+crithidia.foraging.dist.p
 
 ## ***********************************************************************
 ## parasitism ~ diet breadth
@@ -566,157 +542,4 @@ parasite.diet <- ggplot(pred_diet, aes(x = rare.degree, y =
              aes(y=SpStandCrithidiaRate, x=rare.degree), cex=2)
 
 parasite.diet
-
-ggsave(parasite.diet, file="figures/parasite_diet.pdf",
-       height=4, width=5)
-
-## ***********************************************************************
-#putting plots together
-
-#canopy and veg 
-scatter.1 <- grid.arrange(veg.div.stand,
-                          flower.ab.stand,
-                          ncol=2)
-
-ggsave(scatter.1, file="figures/vegcanopy.pdf",
-       height=3, width=9)
-
-
-#canopy and bees
-scatter.2 <- grid.arrange(bee.div.stand,
-                          bee.ab.stand,
-                          ncol=2)
-
-ggsave(scatter.2, file="figures/beecanopy.pdf",
-       height=3, width=9)
-
-#veg div/bee div and veg ab/bee ab                    
-scatter.3 <- grid.arrange(bee.div.plant,
-                           bee.ab.plant,
-                          ncol=2)
-
-ggsave(scatter.3, file="figures/beevegplots.pdf",
-       height=3, width=9)
-
-#bees and crithidia rate
-scatter.4 <- grid.arrange(bee.div.crithidia,
-                          bee.abund.parasite,
-                          ncol=2)
-
-ggsave(scatter.4, file="figures/CRdiseaseplots.pdf",
-       height=3, width=9)
-
-#crithidia and distance/diet
-scatter.5 <- grid.arrange(parasite.fd,
-                          parasite.diet,
-                          ncol=2)
-
-ggsave(scatter.5, file="figures/CRdietforage.pdf",
-       height=3, width=9)
-
-<<<<<<< HEAD
-
-##Deprecated summary plots: 
-#
-##plants per stand type
-# plantsper <- spec.orig %>% 
-#   group_by(CanopyBin, PlantGenusSpecies) %>% 
-#   summarise(count = n())
-# 
-# #add total stands in each stand type, + divide 
-# summary <- plantsper %>% 
-#   left_join(standstype, by="CanopyBin") %>% 
-#   mutate(avg = count.x/count.y) 
-# 
-# plant.spp.bar <- ggplot(summary, 
-#                          aes(y = fct_reorder(PlantGenusSpecies, avg, .desc = TRUE),
-#                              x = avg)) + 
-#   geom_bar(stat = 'identity',
-#            aes(fill = factor(CanopyBin)), position = "dodge") +
-#   theme_classic() +
-#   theme(axis.text.y = element_text(angle = 0, hjust = 1, 
-#                                    face ='italic', color = 'black'),
-#         axis.title.y = element_text(size=15),
-#         axis.title.x = element_text(size=15),
-#         text = element_text(size=15)) +
-#   labs(y=expression(paste('Species')), x='Average individuals 
-#        collected per stand type')
-# 
-# plant.spp.bar
-# 
-# 
-##total bees collected (not per stand)
-# bombus.tot.bar <- ggplot(spec.orig, aes(y = fct_infreq(GenusSpecies))) + 
-#   geom_bar(stat = 'count',
-#            aes(fill = factor(age)), position = "dodge") +
-#   scale_fill_manual(values=c('darkorange4', 'darkorange', 'gold')) +
-#   theme_classic() +
-#   theme(axis.text.y = element_text(angle = 0, hjust = 1, 
-#                                    face ='italic', color = 'black'),
-#         axis.title.y = element_text(size=16),
-#         axis.title.x = element_text(size=16),
-#         text = element_text(size=16)) +
-#   labs(y=expression(paste('Species')), x='Number of \n Collected Individuals') +
-#   geom_text(stat='count', aes(label=..count..), hjust=-0.5) + 
-#   xlim(0, 100)
-# 
-# bombus.tot.bar
-# 
-# ggsave(bombus.tot.bar, file="figures/bombusTotbar.pdf",
-#        height=5, width=7.5)
-## Deprecated parasite plots:  
-=======
-# #############
-# Deprecated parasite plots:  
->>>>>>> 5d522bbe57277d5757fa8d0777b9eba1ba562ad2
-# 
-# labs.veg.div <- (pretty(spec.net$FlowerRareRichness, n=8))
-# axis.veg.div <-  standardize.axis(labs.veg.div,
-#                                   spec.net$FlowerRareRichness)
-# 
-# ## parasitism ~ floral div
-# newdata.beeabund <- tidyr::crossing(FlowerRareRichness =
-#                                       seq(min(data.par$FlowerRareRichness),
-#                                           max(data.par$FlowerRareRichness),
-#                                           length.out=10),
-#                                     BombusDiversity=mean(data.par$BombusDiversity),
-#                                     Stand="100:Camp",
-#                                     Year = "2021",
-#                                     DoyStart = mean(data.par$DoyStart),
-#                                     VegAbundance = mean(data.par$VegAbundance),
-#                                     VegDiversity = mean(data.par$VegDiversity),
-#                                     BombusAbundance = mean(data.par$BombusAbundance),
-#                                     BombusRareRichness = mean(data.par$BombusRareRichness),
-#                                     ForageDist_km = mean(data.par$ForageDist_km)
-# )
-# 
-# pred_beeabund <- fit.bombus %>%
-#   epred_draws(newdata = newdata.beeabund ,
-#               resp = "HasCrithidia",
-#               allow_new_levels = TRUE)
-# 
-# 
-# veg.div.parasite <- ggplot(pred_beeabund, aes(x = FlowerRareRichness, y =
-#                                                 .epred)) +
-#   stat_lineribbon() +
-#   scale_fill_brewer(palette = "Reds") +
-#   labs(x = "Veg diversity", y = "Bombus Stand Parasitism Rate",
-#        fill = "Credible interval") +
-#   theme(legend.position = "bottom") +
-#   scale_x_continuous(
-#     breaks = axis.veg.div,
-#     labels =  labs.veg.div) +
-#   theme(axis.title.x = element_text(size=16),
-#         axis.title.y = element_text(size=16),
-#         text = element_text(size=16)) +
-#   theme_ms() +
-#   geom_point(data=data.par,
-#              aes(y=BombusStandParasitismRate, x=FlowerRareRichness), cex=2)
-# 
-# veg.div.parasite
-# 
-# ggsave(veg.div.parasite, file="figures/parasite_vegDiv.pdf",
-#        height=4, width=5)
-
-############################
 
