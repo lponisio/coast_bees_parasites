@@ -15,6 +15,11 @@ source("src/ggplotThemes.R")
 source("src/init.R")
 source("src/misc.R")
 
+library(gridExtra)
+library(grid)
+library(ggplot2)
+library(lattice)
+
 ## load model results and data
 load(file="saved/CrithidiaFitAllBee_coast.Rdata")
 
@@ -32,7 +37,7 @@ stands <- spec.orig[!duplicated(spec.orig$StandRoundYear), ]
 standsplot <- stands %>% 
   ggplot(aes(x=DomTreeDiam_cm, y=MeanCanopy, color=ThinStatus)) +
   geom_point() + 
-  scale_color_manual(values = c("Y" = "gold", "N" = "maroon"),
+  scale_color_manual(values = c("Y" = "#999999", "N" = "black"),
                      labels=c('Not thinned', 'Thinned'),
                      name="Management history") +
   labs(x="Dominant tree class DBH (cm)", y="Canopy openness") +
@@ -97,15 +102,16 @@ open <- spec.orig[spec.orig$CanopyBin %in% c("[75,100]"),]
 #summarize individuals per n type of stand in each category
 standstype <- spec.orig %>% 
   group_by(CanopyBin) %>% 
-  summarise(count = n_distinct(Stand))
-
+  summarise(count = n_distinct(Stand)) 
+  
 beesper <- spec.orig %>% 
   group_by(CanopyBin, Genus) %>% 
-  summarise(count = n())
+  summarise(count = n()) %>% 
+  filter(!is.na(Genus))
 
 summary <- beesper %>% 
   left_join(standstype, by="CanopyBin") %>% 
-  mutate(avg = count.x/count.y) 
+  mutate(avg = count.x/count.y)
 
 ## ***********************************************************************
 ## all bee genus bar graph
@@ -118,10 +124,11 @@ bee.spp.bar <- ggplot(summary,
   geom_bar(stat = 'identity',
            aes(fill = factor(CanopyBin)), position = "dodge") +
   scale_fill_manual(values=c('#004D40', '#FFC107', 'lightblue'),
-                    name = "Canopy closure", 
+                    name = "Canopy type", 
                     labels=c('Closed', 'Intermediate', 'Open')) +
   theme_classic() +
-  theme(axis.text.y = element_text(angle = 0, hjust = 1, 
+  theme(legend.position = "top",
+                axis.text.y = element_text(angle = 0, hjust = 1, 
                                    face ='italic', color = 'black'),
         axis.text.x = element_text(color="black"),
         axis.title.y = element_text(size=14),
@@ -147,19 +154,18 @@ beesper <- bomb.orig %>%
   group_by(CanopyBin, GenusSpecies) %>% 
   summarise(count = n())
 
-summary <- beesper %>% 
+bombsummary <- beesper %>% 
   left_join(standstype, by="CanopyBin") %>% 
   mutate(avg = count.x/count.y) 
 
 #modifying to show prop of total
-bombus.spp.bar <- ggplot(summary, 
+bombus.spp.bar <- ggplot(bombsummary, 
                          aes(y = fct_reorder(GenusSpecies, avg, .desc = TRUE),
                              x = avg)) + 
   geom_bar(stat = 'identity',
-           aes(fill = factor(CanopyBin)), position = "dodge") +
-  scale_fill_manual(values=c('#004D40', '#FFC107', 'lightblue'),
-                    name = "Canopy closure", 
-                    labels=c('Closed', 'Intermediate', 'Open')) +
+           aes(fill = factor(CanopyBin)), position = "dodge",
+           show.legend = F) +
+  scale_fill_manual(values=c('#004D40', '#FFC107', 'lightblue')) +
   theme_classic() +
   theme(axis.text.y = element_text(angle = 0, hjust = 1, 
                                    face ='italic', color = 'black'),
@@ -192,17 +198,16 @@ parasite.count.table <- spec.orig %>%
 parasite.hist <- parasite.count.table %>%
   ggplot(aes(y= fct_infreq(ParasiteName))) + 
   geom_bar(stat = 'count',
-           aes(fill = factor(CanopyBin)), position = "dodge") +
-  scale_fill_manual(values=c('#004D40', '#FFC107', 'lightblue'),
-                    name = "Canopy closure", 
-                    labels=c('Closed', 'Intermediate', 'Open')) +
+           aes(fill = factor(CanopyBin)), position = "dodge",
+           show.legend = F) +
+  scale_fill_manual(values=c('#004D40', '#FFC107', 'lightblue')) +
   theme_classic() +
   theme(axis.text.y = element_text(angle = 0, hjust = 1, color = "black"),
-        axis.title.y = element_text(size=16),
-        axis.title.x = element_text(size=16),
+        axis.title.y = element_text(size=14),
+        axis.title.x = element_text(size=14),
         axis.text.x = element_text(color = "black"),
-        text = element_text(size=16)) +
-  labs(y='Parasite', x='Number of \n Infected Individuals') +
+        text = element_text(size=14)) +
+  labs(y='Parasite', x='Number of \n infected individuals') +
   xlim(0,75) +
   scale_y_discrete(labels=c("NosemaCeranae"=expression(italic('Nosema ceranae')),
                             "NosemaBombi"=expression(italic('Nosema bombi')),
@@ -217,6 +222,18 @@ parasite.hist
 
 ggsave(parasite.hist, file="figures/coastparasiteSppHist.pdf",
        height=3, width=5)
+
+## combining summary plots
+summaries <- grid.arrange(bee.spp.bar, 
+                          bombus.spp.bar, 
+                          parasite.hist, 
+                          nrow = 2,
+                          layout_matrix = rbind(c(1, 2),
+                                                c(1, 3))
+)
+
+ggsave(summaries, file="figures/summaries.pdf",
+       height=9, width=11)
 
 ## ***********************************************************************
 ## prepping for newdata draws 
@@ -384,6 +401,7 @@ bdiv.stand <- ggplot(bdiv, aes(x = MeanCanopy,
           text = element_text(size=16)) 
 
 bdiv.stand
+
 ## ***********************************************************************
 ## mean canopy and bee abundance
 ## ***********************************************************************
