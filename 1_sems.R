@@ -1,4 +1,4 @@
-setwd("~/Dropbox (University of Oregon)/coast_bees_parasites")
+setwd("/coast_bees_parasites")
 
 ## Prepares the data for model fitting (standardizes continuous
 ## variables, creates dummy variables to be used as weights to all
@@ -42,7 +42,7 @@ spec.net$MeanITD[spec.net$Genus != "Bombus"] <- NA
 ## all of the variables that are explanatory variables and thus need
 ## to be centered. Because brms needs a single dataset, which must be
 ## at the indivudal-level for the parasite model, we need to carefully
-## standardize the data at the correct level. 
+## standardize the data at the correct level.
 
 ## standardize by stand, year
 vars_year <- c("MeanCanopy")
@@ -88,7 +88,7 @@ spec.orig <- prepDataSEM(spec.net, variables.to.log,
 
 
 ## Make SEM weights and standardize data.
-spec.net <- prepDataSEM(spec.net, variables.to.log, variables.to.log.p1, 
+spec.net <- prepDataSEM(spec.net, variables.to.log, variables.to.log.p1,
                         vars_yearsr=vars_year_sr,
                         vars_year=vars_year,
                         vars_sp=vars_sp,
@@ -103,14 +103,13 @@ formula.flower.div <- formula(VegDiversity | subset(Weights) ~
                                   DoyStart + I(DoyStart^2) +
                                       MeanCanopy*ThinStatus +
                                       Year +
-                                      (1|Stand) 
+                                      (1|Stand)
                               )
 
 ## flower abund with simpson div
 formula.flower.abund <- formula(VegAbundance | subset(Weights) ~
                                     DoyStart +  I(DoyStart^2) +
                                         MeanCanopy*ThinStatus +
-                                        I(MeanCanopy^2) +
                                         Year +
                                         (1|Stand)
                                 )
@@ -124,7 +123,7 @@ formula.bee.div <- formula(BeeDiversity | subset(Weights)~
                                    TempCStart +
                                    MeanCanopy*ThinStatus +
                                    Year +
-                                   (1|Stand) 
+                                   (1|Stand)
                            )
 
 formula.bee.abund <- formula(BeeAbundance | subset(Weights)~
@@ -132,23 +131,25 @@ formula.bee.abund <- formula(BeeAbundance | subset(Weights)~
                                      TempCStart +
                                      MeanCanopy*ThinStatus +
                                      Year +
-                                     (1|Stand)  
+                                     (1|Stand)
                              )
 
 
-
+## hurdle models
 formula.bee.div.hu <- formula(hu ~
                                   VegDiversity +
                                   TempCStart +
                                   MeanCanopy +
-                                  (1|Stand) 
+                                  ThinStatus +
+                                  (1|Stand)
                               )
 
 formula.bee.abund.hu <- formula(hu ~
                                     VegAbundance +
                                     TempCStart +
                                     MeanCanopy +
-                                    (1|Stand)  
+                                    ThinStatus +
+                                    (1|Stand)
                                 )
 
 
@@ -166,7 +167,7 @@ xvars.coast <- c("BeeDiversity",
                  )
 
 ## **********************************************************
-## Crithidia 
+## Crithidia
 ## **********************************************************
 ## because we only screened bombus in the parasite models
 spec.net$WeightsPar[spec.net$Genus != "Bombus"] <- 0
@@ -242,6 +243,8 @@ run_plot_freq_model_diagnostics(freq.formula,
                                 this_family="bernoulli")
 
 ## **********************************************************
+
+## spec.net$ThinStatus <- factor(spec.net$ThinStatus, levels=c("Y", "N"))
 
 ## run model
 fit.bombus <- brm(bform, spec.net,
