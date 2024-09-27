@@ -32,8 +32,10 @@ load("data/phylo.Rdata")
 ## parasite models only inlcude bombus and only species that were
 ## screened, so put NA for other species to avoid weird
 ## standardization
-spec.net$rare.degree[spec.net$Genus != "Bombus"] <- NA
-spec.net$MeanITD[spec.net$Genus != "Bombus"] <- NA
+spec.net$rare.degree[spec.net$Genus != "Bombus" &
+                     is.na(spec.net$Apidae)] <- NA
+spec.net$MeanITD[spec.net$Genus != "Bombus" &
+                 is.na(spec.net$Apidae)] <- NA
 
 ## **********************************************************
 ## formula for site effects on the bee community
@@ -139,16 +141,16 @@ formula.bee.abund <- formula(BeeAbundance | subset(Weights)~
 formula.bee.div.hu <- formula(hu ~
                                   VegDiversity +
                                   TempCStart +
-                                  MeanCanopy +
-                                  ThinStatus +
+                                  MeanCanopy*ThinStatus +
+                                  Year +
                                   (1|Stand)
                               )
 
 formula.bee.abund.hu <- formula(hu ~
                                     VegAbundance +
                                     TempCStart +
-                                    MeanCanopy +
-                                    ThinStatus +
+                                    MeanCanopy*ThinStatus +
+                                    Year +
                                     (1|Stand)
                                 )
 

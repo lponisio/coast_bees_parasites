@@ -5,6 +5,9 @@
 ## builds the models, and fits the models in brms. The model outputs
 ## are saved as tables, and chain diagnostic plots created.
 
+## this tutorial was used to inform plotting:
+## https://www.andrewheiss.com/blog/2022/05/09/hurdle-lognormal-gaussian-brms/
+
 setwd("coast_bees_parasites")
 
 rm(list=ls())
@@ -12,9 +15,7 @@ source("src/ggplotThemes.R")
 source("src/init.R")
 source("src/misc.R")
 
-library(gridExtra)
-library(grid)
-library(lattice)
+library(ggpubr)
 library(tidyverse)
 
 ## load model results and data
@@ -54,12 +55,12 @@ ggsave(standsplot, file="figures/canopyDBH.pdf",
 ## descriptive bar charts
 ## ***********************************************************************
 
-#binning canopy - remember that canopy is unintuitive and 0-25 is lowest
+## binning canopy - remember that canopy is unintuitive and 0-25 is lowest
 spec.orig$CanopyBin <- cut(spec.orig$MeanCanopy,
                      breaks = c(0, 25, 75, 100),
                      include.lowest = T, right = F)
 
-#veg abundance summary by canopy type
+## veg abundance summary by canopy type
 spec.orig <- spec.orig[!is.na(spec.orig$CanopyBin),]
 
 stats <- spec.orig %>%
@@ -75,7 +76,7 @@ stats2 <- spec.orig.2 %>%
   summarise(meanveg =mean(VegAbundance),
             sdveg = sd(VegAbundance))
 
-#bee diversity summary by canopy type
+## bee diversity summary by canopy type
 stats <- spec.orig %>%
   group_by(ThinStatus) %>%
   summarise(meanbee =mean(BeeDiversity),
@@ -88,7 +89,7 @@ stats2 <- spec.orig.2 %>%
 
 spec.orig <- spec.orig[!is.na(spec.orig$CanopyBin),]
 
-#per canopy type mean and sd of veg abund/diversity
+## per canopy type mean and sd of veg abund/diversity
 closed <- spec.orig[spec.orig$CanopyBin %in% c("[0,25)"),]
 intermed <- spec.orig[spec.orig$CanopyBin %in% c("[25,75)"),]
 open <- spec.orig[spec.orig$CanopyBin %in% c("[75,100]"),]
@@ -133,9 +134,6 @@ bee.spp.bar <- ggplot(summary,
 
 bee.spp.bar
 
-ggsave(bee.spp.bar, file="figures/beeSppbar.pdf",
-       height=3, width=5)
-
 ## ***********************************************************************
 ## bombus species bar graph
 ## ***********************************************************************
@@ -172,18 +170,17 @@ bombus.spp.bar <- ggplot(bombsummary,
 
 bombus.spp.bar
 
-ggsave(bombus.spp.bar, file="figures/bombusSppbar.pdf",
-       height=3, width=5)
-
-
 ## parasite counts
 parasite.count.table <- spec.orig %>%
   filter(Apidae == 1) %>%
-  select(SpecimenID, ApicystisSpp, AscosphaeraSpp, CrithidiaBombi, CrithidiaExpoeki,
-         CrithidiaSpp, NosemaBombi, NosemaCeranae, ParasitePresence, ParasiteRichness,
+    select(SpecimenID, ApicystisSpp, AscosphaeraSpp, CrithidiaBombi,
+           CrithidiaExpoeki,
+           CrithidiaSpp, NosemaBombi, NosemaCeranae, ParasitePresence,
+           ParasiteRichness,
          CanopyBin) %>%
   pivot_longer(cols=c(ApicystisSpp, AscosphaeraSpp, CrithidiaBombi,
-                      CrithidiaSpp, CrithidiaExpoeki, NosemaCeranae, NosemaBombi),
+                      CrithidiaSpp, CrithidiaExpoeki, NosemaCeranae,
+                      NosemaBombi),
                names_to = 'ParasiteName', values_to = 'HasParasite') %>%
   filter(HasParasite == 1)
 
@@ -212,9 +209,6 @@ parasite.hist <- parasite.count.table %>%
                             parse=TRUE))  + labs(fill = "Canopy openness")
 
 parasite.hist
-
-ggsave(parasite.hist, file="figures/coastparasiteSppHist.pdf",
-       height=3, width=5)
 
 ## combining summary plots
 summaries <- grid.arrange(bee.spp.bar,
@@ -263,22 +257,18 @@ axis.babund <- standardize.axis(labs.babund,
                                  new.orig$BeeAbundance)
 
 ## foraging distance km
-labs.forage.dist <- pretty(new.orig$ForageDist_km, n=10)
+labs.forage.dist <- pretty(new.orig$ForageDist_km[
+                                        new.orig$Genus == "Bombus"], n=10)
 axis.forage.dist <- standardize.axis(labs.forage.dist,
                                  new.orig$ForageDist_km)
-
-## degree (diet breadth)
-labs.degree <- pretty(new.orig$rare.degree, n=10)
-axis.degree <- standardize.axis(labs.degree,
-                                 new.orig$rare.degree)
 
 
 ## ***********************************************************************
 ## mean canopy ~ floral diversity
 ## ***********************************************************************
 
+## for hurdle models, include both count and hurdle parts of the models
 all.cond.effects <- conditional_effects(fit.bombus)
-hurdle.cond.effects <- conditional_effects(fit.bombus, dpar = "mu")
 
 ## different slopes and intercepts for thinned/unthinned
 ## thinned slope is not strongly different from zero
@@ -287,23 +277,23 @@ vdiv <-
     all.cond.effects[["VegDiversity.VegDiversity_MeanCanopy:ThinStatus"]]
 
 vdiv.stand <- ggplot(vdiv, aes(x = MeanCanopy,
-                                  y = estimate__)) +
+                               y = estimate__)) +
     geom_line(aes(x = MeanCanopy, y=estimate__ ,
                   color = ThinStatus, linetype = ThinStatus), size=1.5) +
     geom_ribbon(aes(ymin = lower__, ymax = upper__, fill=ThinStatus,
                     alpha=0.3)) +
-    scale_fill_manual(values = c("darkolivegreen4", "grey"),
+    scale_fill_manual(values = c("darkolivegreen4", "forestgreen"),
                       labels = c("Unthinned", "thinned")) +
-    scale_color_manual(values = c("black", gray(.4))) +
+    scale_color_manual(values = c("black", "#999999")) +
     geom_point(data=new.net,
                aes(x=MeanCanopy, y=VegDiversity,
                    color = ThinStatus), cex=2) +
     geom_point(data=new.net,
                aes(x=MeanCanopy, y=VegDiversity), cex=2, pch=1) +
     labs(x = "", y = "Floral diversity",
-         fill = "Credible interval") +
+         fill = "95% credible interval") +
     theme_ms() +
-    theme(legend.position = "none") +
+                                        #theme(legend.position = "none") +
     scale_x_continuous(
         breaks = axis.canopy,
         labels =  labs.canopy) +
@@ -312,37 +302,36 @@ vdiv.stand <- ggplot(vdiv, aes(x = MeanCanopy,
         breaks = axis.fdiv) +
     theme(axis.title.x = element_blank(),
           axis.title.y = element_text(size=16),
-          text = element_text(size=16))
-
-vdiv.stand
+          text = element_text(size=16)) +
+    guides(linetype = "none", alpha="none", color="none")
 
 ## ***********************************************************************
 ## mean canopy and floral abundance
 ## ***********************************************************************
-## different intercepts for thinned/unthinned
+## different intercepts and slopes for thinned/unthinned
 ## thinned
 
 vabund <-
     all.cond.effects[["VegAbundance.VegAbundance_MeanCanopy:ThinStatus"]]
 
 vabund.stand <- ggplot(vabund, aes(x = MeanCanopy,
-                                      y = estimate__)) +
+                                   y = estimate__)) +
     geom_line(aes(x = MeanCanopy, y=estimate__ ,
                   color = ThinStatus),  size=1.5) +
     geom_ribbon(aes(ymin = lower__, ymax = upper__, fill=ThinStatus,
                     alpha=0.3)) +
     scale_fill_manual(values = c("darkolivegreen4", "forestgreen"),
                       labels = c("Unthinned", "Thinned")) +
-    scale_color_manual(values = c("black", gray(.4))) +
+    scale_color_manual(values = c("black", "#999999")) +
     geom_point(data=new.net,
                aes(x=MeanCanopy, y=VegAbundance,
                    color = ThinStatus), cex=2) +
     geom_point(data=new.net,
                aes(x=MeanCanopy, y=VegAbundance), cex=2, pch=1) +
     labs(x = "", y = "Floral abundance (log)",
-         fill = "Credible interval") +
+         fill = "95% credible interval") +
     theme_ms() +
-    theme(legend.position = "none") +
+                                        #  theme(legend.position = "none") +
     scale_x_continuous(
         breaks = axis.canopy,
         labels =  labs.canopy) +
@@ -351,37 +340,36 @@ vabund.stand <- ggplot(vabund, aes(x = MeanCanopy,
         breaks = axis.fabund) +
     theme(axis.title.x = element_blank(),
           axis.title.y = element_text(size=16),
-          text = element_text(size=16))
-
-vabund.stand
+          text = element_text(size=16))  +
+    guides(linetype = "none", alpha="none", color="none")
 
 ## ***********************************************************************
 ## mean canopy and bee diversity
 ## ***********************************************************************
-## different intercepts for thinned/unthinned
+## different intercepts and slopes for thinned/unthinned
 ## thinned
 
 bdiv <-
-    hurdle.cond.effects[["BeeDiversity.BeeDiversity_MeanCanopy:ThinStatus"]]
+    all.cond.effects[["BeeDiversity.BeeDiversity_MeanCanopy:ThinStatus"]]
 
 bdiv.stand <- ggplot(bdiv, aes(x = MeanCanopy,
-                                      y = estimate__)) +
+                               y = estimate__)) +
     geom_line(aes(x = MeanCanopy, y=estimate__ ,
-                  color = ThinStatus), size=1.5) +
+                  color = ThinStatus, linetype = ThinStatus), size=1.5) +
     geom_ribbon(aes(ymin = lower__, ymax = upper__, fill=ThinStatus,
                     alpha=0.3)) +
-    scale_fill_manual(values = c("grey30", "grey"),
-                      labels = c("Thinned", "Unthinned")) +
-    scale_color_manual(values = c("black", gray(.4))) +
+    scale_fill_manual(values = c("darkolivegreen4", "forestgreen"),
+                      labels = c("Unthinned", "Thinned")) +
+    scale_color_manual(values = c("black", "#999999")) +
     geom_point(data=new.net,
                aes(x=MeanCanopy, y=BeeDiversity,
                    color = ThinStatus), cex=2) +
     geom_point(data=new.net,
                aes(x=MeanCanopy, y=BeeDiversity), cex=2, pch=1) +
     labs(x = "Canopy openness", y = "Bee diversity (log)",
-         fill = "Credible interval") +
+         fill = "95% credible interval") +
     theme_ms() +
-    theme(legend.position = "none") +
+                                        # theme(legend.position = "none") +
     scale_x_continuous(
         breaks = axis.canopy,
         labels =  labs.canopy) +
@@ -390,36 +378,35 @@ bdiv.stand <- ggplot(bdiv, aes(x = MeanCanopy,
         breaks = axis.bdiv) +
     theme(axis.title.x = element_text(size=16),
           axis.title.y = element_text(size=16),
-          text = element_text(size=16))
-
-bdiv.stand
+          text = element_text(size=16))  +
+    guides(linetype = "none", alpha="none", color="none")
 
 ## ***********************************************************************
 ## mean canopy and bee abundance
 ## ***********************************************************************
 
 babund <-
-    hurdle.cond.effects[["BeeAbundance.BeeAbundance_MeanCanopy:ThinStatus"]]
+    all.cond.effects[["BeeAbundance.BeeAbundance_MeanCanopy:ThinStatus"]]
 
 babund.stand <- ggplot(babund, aes(x = MeanCanopy,
-                                      y = estimate__)) +
+                                   y = estimate__)) +
     geom_line(aes(x = MeanCanopy, y=estimate__ ,
                   color = ThinStatus,
                   linetype = ThinStatus), size=1.5) +
     geom_ribbon(aes(ymin = lower__, ymax = upper__, fill=ThinStatus,
                     alpha=0.3)) +
-    scale_fill_manual(values = c("darkolivegreen4", "grey"),
-                      labels = c("Thinned", "Unthinned")) +
-    scale_color_manual(values = c("black", gray(.4))) +
+    scale_fill_manual(values = c("darkolivegreen4", "forestgreen"),
+                      labels = c("Unthinned", "Thinned")) +
+    scale_color_manual(values = c("black", "#999999")) +
     geom_point(data=new.net,
                aes(x=MeanCanopy, y=BeeAbundance,
                    color = ThinStatus), cex=2) +
     geom_point(data=new.net,
                aes(x=MeanCanopy, y=BeeAbundance), cex=2, pch=1) +
     labs(x = "Canopy openness", y = "Bee abundance (log)",
-         fill = "Credible interval") +
+         fill = "95% credible interval") +
     theme_ms() +
-    theme(legend.position = "none") +
+                                        # theme(legend.position = "none") +
     scale_x_continuous(
         breaks = axis.canopy,
         labels =  labs.canopy) +
@@ -429,12 +416,13 @@ babund.stand <- ggplot(babund, aes(x = MeanCanopy,
         breaks = axis.babund) +
     theme(axis.title.x = element_text(size=16),
           axis.title.y = element_text(size=16),
-          text = element_text(size=16))
+          text = element_text(size=16))  +
+    guides(linetype = "none", alpha="none", color="none")
 
-babund.stand
+all.canopy <- ggarrange(vabund.stand, vdiv.stand, babund.stand, bdiv.stand,
+                        nrow=2, ncol=2, labels = c("A", "B", "C", "D"),
+                        common.legend = TRUE, legend="bottom")
 
-all.canopy <- grid.arrange(vabund.stand, vdiv.stand, babund.stand, bdiv.stand,
-             nrow=2)
 ggsave(all.canopy, file="figures/all_canopy.pdf", height=7, width=8)
 
 ## ***********************************************************************
@@ -442,7 +430,7 @@ ggsave(all.canopy, file="figures/all_canopy.pdf", height=7, width=8)
 ## ***********************************************************************
 
 babund.fabund <-
-    hurdle.cond.effects[["BeeAbundance.BeeAbundance_VegAbundance"]]
+    all.cond.effects[["BeeAbundance.BeeAbundance_VegAbundance"]]
 
 babund.fabund.p <- ggplot(babund.fabund, aes(x = VegAbundance,
                                    y = estimate__)) +
@@ -450,7 +438,7 @@ babund.fabund.p <- ggplot(babund.fabund, aes(x = VegAbundance,
     geom_ribbon(aes(ymin = lower__, ymax = upper__,
                     alpha=0.3)) +
     scale_fill_manual(values = c("dodgerblue")) +
-    scale_color_manual(values = c("black", gray(.4))) +
+    scale_color_manual(values = c("black", "#999999")) +
     geom_point(data=new.net,
                aes(x=VegAbundance, y=BeeAbundance,
                    color = ThinStatus), cex=2) +
@@ -481,7 +469,7 @@ babund.fabund.p
 ## ***********************************************************************
 
 crithidia.foraging.dist <-
-    hurdle.cond.effects[["HasCrithidia.HasCrithidia_ForageDist_km"]]
+    all.cond.effects[["HasCrithidia.HasCrithidia_ForageDist_km"]]
 
 crithidia.foraging.dist.p <-
     ggplot(crithidia.foraging.dist, aes(x = ForageDist_km,
@@ -490,17 +478,19 @@ crithidia.foraging.dist.p <-
     geom_ribbon(aes(ymin = lower__, ymax = upper__,
                     alpha=0.3)) +
     scale_fill_manual(values = c("dodgerblue")) +
-    scale_color_manual(values = c("black", gray(.4))) +
-    labs(x = "Foraging distance (km)", y = "Crithidia prevalence",
+    labs(x = "Foraging distance (log km)", y = "Crithidia prevalence",
          fill = "Credible interval") +
     theme_ms() +
     theme(legend.position = "none") +
     scale_x_continuous(
         breaks = axis.forage.dist,
         labels =  labs.forage.dist) +
-    theme(axis.title.x = element_blank(),
+    xlim(range(axis.forage.dist)) +
+    theme(axis.title.x = element_text(size=16),
           axis.title.y = element_text(size=16),
           text = element_text(size=16))
 
 crithidia.foraging.dist.p
 
+ggsave(crithidia.foraging.dist.p, file="figures/crithidia_foragingdis.pdf",
+       height=5, width=5)
