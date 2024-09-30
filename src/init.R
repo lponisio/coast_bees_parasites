@@ -1,13 +1,16 @@
 ## models
 library(brms)
 library(bayestestR)
+library(Matrix)
+library(lme4)
 
 ## general
 library(dplyr)
-#library(tidyverse)
+library(tidyverse)
 
 ## plotting
 library(ggplot2)
+library(ggpubr)
 library(tidybayes)
 library(ggthemes)
 library(ggtext)
@@ -16,8 +19,9 @@ library(viridis)
 library(gridExtra)
 
 ## trees
-## library(phytools)
-## library(ggtree)
+library(phytools)
+library(ggtree)
+library(ape)
 
 save.dir0 <- "saved/"
 if(!dir.exists(save.dir0)) {
