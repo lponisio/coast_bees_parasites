@@ -1,4 +1,4 @@
-setwd("/coast_bees_parasites")
+setwd("coast_bees_parasites")
 
 ## Prepares the data for model fitting (standardizes continuous
 ## variables, creates dummy variables to be used as weights to all

@@ -18,91 +18,60 @@ source("src/misc.R")
 library(ggpubr)
 library(tidyverse)
 
-## load model results and data
-load(file="saved/CrithidiaFitAllBee_coast.Rdata")
-
-## log + 1  Veg abundance, Bee diversity and bee abundance
-## log "ForageDist_km", "rare.degree"
-
-## Bee diversity and bee abundance are not scaled
-
-## ***********************************************************************
-## scatterplot of canopy cover and dbh, highlighting thins
-## ***********************************************************************
-
-stands <- spec.orig[!duplicated(spec.orig$StandRoundYear), ]
-
-standsplot <- stands %>%
-  ggplot(aes(x=DomTreeDiam_cm, y=MeanCanopy, color=ThinStatus)) +
-  geom_point() +
-  scale_color_manual(values = c("Y" = "#999999", "N" = "black"),
-                     labels=c('Not thinned', 'Thinned'),
-                     name="Management history") +
-  labs(x="Dominant tree class DBH (cm)", y="Canopy openness") +
-  xlim(0,75) +
-  theme_classic()+
-  theme(
-    axis.text.x = element_text(color="black"),
-    axis.text.y = element_text(color="black"),
-    axis.ticks = element_line(color = "black"))
-
-standsplot
-
-ggsave(standsplot, file="figures/canopyDBH.pdf",
-       height=2, width=4)
-
 ## ***********************************************************************
 ## descriptive bar charts
 ## ***********************************************************************
 
+load("data/spec_net_coast.Rdata")
+
 ## binning canopy - remember that canopy is unintuitive and 0-25 is lowest
-spec.orig$CanopyBin <- cut(spec.orig$MeanCanopy,
+spec.net$CanopyBin <- cut(spec.net$MeanCanopy,
                      breaks = c(0, 25, 75, 100),
                      include.lowest = T, right = F)
 
 ## veg abundance summary by canopy type
-spec.orig <- spec.orig[!is.na(spec.orig$CanopyBin),]
+spec.net <- spec.net[!is.na(spec.net$CanopyBin),]
 
-stats <- spec.orig %>%
+stats <- spec.net %>%
   group_by(ThinStatus) %>%
   summarise(meanveg =mean(VegAbundance),
             sdveg = sd(VegAbundance))
 
-spec.orig.2 <- spec.orig %>%
+spec.net.2 <- spec.net %>%
   filter(ThinStatus == 'N')
 
-stats2 <- spec.orig.2 %>%
+stats2 <- spec.net.2 %>%
   group_by(CanopyBin) %>%
   summarise(meanveg =mean(VegAbundance),
             sdveg = sd(VegAbundance))
 
 ## bee diversity summary by canopy type
-stats <- spec.orig %>%
+stats <- spec.net %>%
   group_by(ThinStatus) %>%
   summarise(meanbee =mean(BeeDiversity),
             sdbee = sd(BeeDiversity))
 
-stats2 <- spec.orig.2 %>%
+stats2 <- spec.net.2 %>%
   group_by(CanopyBin) %>%
   summarise(meanbee =mean(BeeDiversity),
             sdbee = sd(BeeDiversity))
 
-spec.orig <- spec.orig[!is.na(spec.orig$CanopyBin),]
+spec.net <- spec.net[!is.na(spec.net$CanopyBin),]
 
 ## per canopy type mean and sd of veg abund/diversity
-closed <- spec.orig[spec.orig$CanopyBin %in% c("[0,25)"),]
-intermed <- spec.orig[spec.orig$CanopyBin %in% c("[25,75)"),]
-open <- spec.orig[spec.orig$CanopyBin %in% c("[75,100]"),]
+closed <- spec.net[spec.net$CanopyBin %in% c("[0,25)"),]
+intermed <- spec.net[spec.net$CanopyBin %in% c("[25,75)"),]
+open <- spec.net[spec.net$CanopyBin %in% c("[75,100]"),]
 
 ## ***********************************************************************
 ## all bee genus bar graph
 ## ***********************************************************************
 ## summarize individuals per n type of stand in each category
-standstype <- spec.orig %>%
+standstype <- spec.net %>%
   group_by(CanopyBin) %>%
   summarise(count = n_distinct(Stand))
 
-beesper <- spec.orig %>%
+beesper <- spec.net %>%
   group_by(CanopyBin, Genus) %>%
   summarise(count = n()) %>%
   filter(!is.na(Genus))
@@ -138,7 +107,7 @@ bee.spp.bar
 ## bombus species bar graph
 ## ***********************************************************************
 
-bomb.orig <- spec.orig %>%
+bomb.orig <- spec.net %>%
   filter(Genus == 'Bombus')
 
 beesper <- bomb.orig %>%
@@ -171,8 +140,8 @@ bombus.spp.bar <- ggplot(bombsummary,
 bombus.spp.bar
 
 ## parasite counts
-parasite.count.table <- spec.orig %>%
-  filter(Apidae == 1) %>%
+parasite.count.table <- spec.net %>%
+  filter(Apidae == 1, Genus == "Bombus") %>%
     select(SpecimenID, ApicystisSpp, AscosphaeraSpp, CrithidiaBombi,
            CrithidiaExpoeki,
            CrithidiaSpp, NosemaBombi, NosemaCeranae, ParasitePresence,
@@ -210,14 +179,18 @@ parasite.hist <- parasite.count.table %>%
 
 parasite.hist
 
+left.col <- ggarrange(bee.spp.bar, ncol=1, nrow=1,
+                      labels = c("A"))
+
+right.col <- ggarrange(bombus.spp.bar,
+                       parasite.hist, nrow=2, ncol=1,
+                       labels = c("B", "C"))
+
 ## combining summary plots
-summaries <- grid.arrange(bee.spp.bar,
-                          bombus.spp.bar,
-                          parasite.hist,
-                          nrow = 2,
-                          layout_matrix = rbind(c(1, 2),
-                                                c(1, 3))
-)
+summaries <- ggarrange(left.col,
+                       right.col,
+                       common.legend = TRUE, legend="bottom"
+                       )
 
 ggsave(summaries, file="figures/summaries.pdf",
        height=9, width=11)
@@ -225,6 +198,14 @@ ggsave(summaries, file="figures/summaries.pdf",
 ## ***********************************************************************
 ## prepping for newdata draws
 ## ***********************************************************************
+## load model results and data
+load(file="saved/CrithidiaFitAllBee_coast.Rdata")
+
+## log + 1  Veg abundance, Bee diversity and bee abundance
+## log "ForageDist_km", "rare.degree"
+
+## Bee diversity and bee abundance are not scaled
+
 
 new.net <- spec.net[spec.net$Weights == 1, ]
 new.orig <- spec.orig[spec.orig$Weights == 1, ]
@@ -331,7 +312,6 @@ vabund.stand <- ggplot(vabund, aes(x = MeanCanopy,
     labs(x = "", y = "Floral abundance (log)",
          fill = "95% credible interval") +
     theme_ms() +
-                                        #  theme(legend.position = "none") +
     scale_x_continuous(
         breaks = axis.canopy,
         labels =  labs.canopy) +
@@ -369,7 +349,6 @@ bdiv.stand <- ggplot(bdiv, aes(x = MeanCanopy,
     labs(x = "Canopy openness", y = "Bee diversity (log)",
          fill = "95% credible interval") +
     theme_ms() +
-                                        # theme(legend.position = "none") +
     scale_x_continuous(
         breaks = axis.canopy,
         labels =  labs.canopy) +
@@ -406,7 +385,6 @@ babund.stand <- ggplot(babund, aes(x = MeanCanopy,
     labs(x = "Canopy openness", y = "Bee abundance (log)",
          fill = "95% credible interval") +
     theme_ms() +
-                                        # theme(legend.position = "none") +
     scale_x_continuous(
         breaks = axis.canopy,
         labels =  labs.canopy) +
@@ -494,3 +472,29 @@ crithidia.foraging.dist.p
 
 ggsave(crithidia.foraging.dist.p, file="figures/crithidia_foragingdis.pdf",
        height=5, width=5)
+
+
+## ***********************************************************************
+## scatterplot of canopy cover and dbh, highlighting thins
+## ***********************************************************************
+
+stands <- spec.orig[!duplicated(spec.orig$StandRoundYear), ]
+
+standsplot <- stands %>%
+  ggplot(aes(x=DomTreeDiam_cm, y=MeanCanopy, color=ThinStatus)) +
+  geom_point() +
+  scale_color_manual(values = c("Y" = "#999999", "N" = "black"),
+                     labels=c('Not thinned', 'Thinned'),
+                     name="Management history") +
+  labs(x="Dominant tree class DBH (cm)", y="Canopy openness") +
+  xlim(0,75) +
+  theme_classic()+
+  theme(
+    axis.text.x = element_text(color="black"),
+    axis.text.y = element_text(color="black"),
+    axis.ticks = element_line(color = "black"))
+
+standsplot
+
+ggsave(standsplot, file="figures/canopyDBH.pdf",
+       height=2, width=4)
