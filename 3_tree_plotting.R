@@ -1,5 +1,5 @@
 
-## This script plots the phylogeny and accociated traits.
+## This script plots the phylogeny and associated traits.
 
 rm(list=ls())
 
@@ -56,19 +56,26 @@ tree.traits <- full_join(phylo, sp.means, by='label')
 trs <- list(Degree = tree.traits, Foraging_distance_km = tree.traits)
 class(trs) <- 'treedataList'
 
+supp.labs <- c("Diet breadth", "Foraging distance (km)")
+names(supp.labs) <- c("Degree", "Foraging_distance_km")
+
 p1 <- ggtree(trs) +  geom_tiplab(size =5) + hexpand(0.8) +
   labs(tag = "A")
 
 
-p2 <-  ggtree(trs) + facet_wrap(~.id) +
+p2 <-  ggtree(trs) + facet_wrap(~.id,
+                                labeller = labeller(.id = supp.labs)) +
   geom_tippoint(aes(subset=.id == 'Degree',
-                    colour=Degree, cex=2)) +
-  scale_colour_gradient(low='grey', high='blue') +
+                    colour=Degree, cex=2,
+                    )) +
+  scale_colour_gradient(low='yellow', high='red',
+                        name = "Diet breadth") +
   labs(tag = "B") +
   ggnewscale::new_scale_colour()  +
   geom_tippoint(aes(subset=.id == 'Foraging_distance_km',
-                    colour=Foraging_distance_km, cex=2)) +
-  scale_colour_viridis_c(option="viridis") +
+                    colour=Foraging_distance_km, cex=2,)) +
+  scale_colour_gradient(low='grey', high='blue',
+                         name = "Foraging distance (km)") +
   ggnewscale::new_scale_colour()  +
   guides(cex = "none")
 
