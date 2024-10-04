@@ -22,6 +22,7 @@ library(gridExtra)
 library(phytools)
 library(ggtree)
 library(ape)
+library(tidytree)
 
 save.dir0 <- "saved/"
 if(!dir.exists(save.dir0)) {
