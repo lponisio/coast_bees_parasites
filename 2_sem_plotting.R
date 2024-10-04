@@ -8,15 +8,12 @@
 ## this tutorial was used to inform plotting:
 ## https://www.andrewheiss.com/blog/2022/05/09/hurdle-lognormal-gaussian-brms/
 
-setwd("coast_bees_parasites")
+setwd("C:/Users/mycol/Dropbox (University of Oregon)/coast_bees_parasites/coast_bees_parasites")
 
 rm(list=ls())
 source("src/ggplotThemes.R")
 source("src/init.R")
 source("src/misc.R")
-
-library(ggpubr)
-library(tidyverse)
 
 ## ***********************************************************************
 ## descriptive bar charts
@@ -104,6 +101,49 @@ bee.spp.bar <- ggplot(summary,
 bee.spp.bar
 
 ## ***********************************************************************
+## plant spp bar graph
+## ***********************************************************************
+## summarize individuals per n type of stand in each category
+standstype <- spec.net %>%
+  group_by(CanopyBin) %>%
+  summarise(count = n_distinct(Stand))
+
+plantper <- spec.net %>%
+  group_by(CanopyBin, PlantGenusSpecies) %>%
+  summarise(count = n()) %>%
+  filter(!is.na(PlantGenusSpecies))
+
+summary <- plantper %>%
+  left_join(standstype, by="CanopyBin") %>%
+  mutate(avg = count.x/count.y) 
+
+summary <- subset(summary, summary$count.x>2) 
+
+
+## modifying to show prop of total
+plant.bar <- ggplot(summary,
+                      aes(y = fct_reorder(PlantGenusSpecies, avg, .desc = TRUE),
+                          x = avg)) +
+  geom_bar(stat = 'identity',
+           aes(fill = factor(CanopyBin)), position = "dodge") +
+  scale_fill_manual(values=c('#004D40', '#FFC107', 'lightblue'),
+                    name = "Canopy type",
+                    labels=c('Closed', 'Intermediate', 'Open')) +
+  theme_classic() +
+  theme(legend.position = "top",
+        axis.text.y = element_text(angle = 0, hjust = 1,
+                                   face ='italic', color = 'black'),
+        axis.text.x = element_text(color="black"),
+        axis.title.y = element_text(size=14),
+        axis.title.x = element_text(size=14),
+        axis.ticks = element_line(color = "black"),
+        text = element_text(size=14)) +
+  labs(y=expression(paste('Forage species')), x='Average bees
+       collected per canopy type')
+
+plant.bar
+
+## ***********************************************************************
 ## bombus species bar graph
 ## ***********************************************************************
 
@@ -156,10 +196,7 @@ parasite.count.table <- spec.net %>%
 #using #4C4C5A
 parasite.hist <- parasite.count.table %>%
   ggplot(aes(y= fct_infreq(ParasiteName))) +
-  geom_bar(stat = 'count',
-           aes(fill = factor(CanopyBin)), position = "dodge",
-           show.legend = F) +
-  scale_fill_manual(values=c('#004D40', '#FFC107', 'lightblue')) +
+  geom_bar(stat = 'count') +
   theme_classic() +
   theme(axis.text.y = element_text(angle = 0, hjust = 1, color = "black"),
         axis.title.y = element_text(size=14),
