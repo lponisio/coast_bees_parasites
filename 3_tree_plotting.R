@@ -10,9 +10,6 @@ source("src/init.R")
 ## if (!require("BiocManager", quietly = TRUE))
 ##     install.packages("BiocManager")
 ## BiocManager::install("ggtree")
-library(ggtree)
-library(ape)
-library(tidytree)
 
 ## Load tree from : Henriquez Piskulich, Patricia Andrea; Hugall,
 ## Andrew F.; Stuart-Fox, Devi (2023).  A supermatrix phylogeny of the
@@ -59,9 +56,8 @@ class(trs) <- 'treedataList'
 supp.labs <- c("Diet breadth", "Foraging distance (km)")
 names(supp.labs) <- c("Degree", "Foraging_distance_km")
 
-p1 <- ggtree(trs) +  geom_tiplab(size =5) + hexpand(0.8) +
+p1 <- ggtree(trs) +  geom_tiplab(size =5, fontface=3) + hexpand(0.8) +
   labs(tag = "A")
-
 
 p2 <-  ggtree(trs) + facet_wrap(~.id,
                                 labeller = labeller(.id = supp.labs)) +
