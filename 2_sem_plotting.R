@@ -138,10 +138,13 @@ plant.bar <- ggplot(summary,
         axis.title.x = element_text(size=14),
         axis.ticks = element_line(color = "black"),
         text = element_text(size=14)) +
-  labs(y=expression(paste('Forage species')), x='Average bees
-       collected per canopy type')
+  labs(y=expression(paste('Plant species')), x='Average bees
+       collected on plant species per canopy type')
 
-plant.bar
+plant.bar 
+
+ggsave(plant.bar, file="figures/plant_bar.pdf",
+       height=9, width=11)
 
 ## ***********************************************************************
 ## bombus species bar graph
@@ -260,12 +263,12 @@ axis.fdiv <- standardize.axis(labs.fdiv,
                                  new.orig$VegDiversity)
 
 ## floral abundance
-labs.fabund <- pretty(new.orig$VegAbundance, n=10)
+labs.fabund <- pretty(exp(new.orig$VegAbundance), n=10)
 axis.fabund <- standardize.axis(labs.fabund,
-                                 new.orig$VegAbundance)
+                                 exp(new.orig$VegAbundance))
 
 ## bee diversity
-labs.bdiv <- pretty(new.orig$BeeDiversity, n=10)
+labs.bdiv <- pretty((exp(new.orig$BeeDiversity)), n=10)
 axis.bdiv <- standardize.axis(labs.bdiv,
                                  new.orig$BeeDiversity)
 
@@ -351,7 +354,8 @@ vabund.stand <- ggplot(vabund, aes(x = MeanCanopy,
     theme_ms() +
     scale_x_continuous(
         breaks = axis.canopy,
-        labels =  labs.canopy) +
+        labels =  labs.canopy
+        ) +
     scale_y_continuous(
         labels = labs.fabund,
         breaks = axis.fabund) +
