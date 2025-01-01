@@ -32,10 +32,11 @@ load("data/phylo.Rdata")
 ## parasite models only inlcude bombus and only species that were
 ## screened, so put NA for other species to avoid weird
 ## standardization
-spec.net$rare.degree[spec.net$Genus != "Bombus" &
-                     is.na(spec.net$Apidae)] <- NA
-spec.net$MeanITD[spec.net$Genus != "Bombus" &
-                 is.na(spec.net$Apidae)] <- NA
+screened.bombus <- unique(spec.net$GenusSpecies[spec.net$Apidae == 1 &
+                                                spec.net$Genus == "Bombus"])
+screened.bombus <- screened.bombus[!is.na(screened.bombus)]
+spec.net$MeanITD[!spec.net$GenusSpecies %in% screened.bombus] <- NA
+spec.net$rare.degree[!spec.net$GenusSpecies %in% screened.bombus] <- NA
 
 ## **********************************************************
 ## formula for site effects on the bee community
