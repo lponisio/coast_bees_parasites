@@ -9,7 +9,7 @@ setwd("coast_bees_parasites")
 rm(list=ls())
 
 ## set to the number of cores you would like the models to run on
-ncores <- 3
+ncores <- 1
 
 load("data/spec_net_coast.Rdata")
 source("src/init.R")
@@ -32,6 +32,9 @@ load("data/phylo.Rdata")
 ## parasite models only inlcude bombus and only species that were
 ## screened, so put NA for other species to avoid weird
 ## standardization
+
+spec.net <- spec.net[spec.net$ThinStatus == "Y",]
+
 screened.bombus <- unique(spec.net$GenusSpecies[spec.net$Apidae == 1 &
                                                 spec.net$Genus == "Bombus"])
 screened.bombus <- screened.bombus[!is.na(screened.bombus)]
@@ -104,16 +107,14 @@ spec.net <- prepDataSEM(spec.net, variables.to.log, variables.to.log.p1,
 
 formula.flower.div <- formula(VegDiversity | subset(Weights) ~
                                   DoyStart + I(DoyStart^2) +
-                                      MeanCanopy*ThinStatus +
-                                      Year +
+                                      MeanCanopy +
                                       (1|Stand)
                               )
 
 ## flower abund with simpson div
 formula.flower.abund <- formula(VegAbundance | subset(Weights) ~
                                     DoyStart +  I(DoyStart^2) +
-                                        MeanCanopy*ThinStatus +
-                                        Year +
+                                        MeanCanopy +
                                         (1|Stand)
                                 )
 
@@ -124,16 +125,14 @@ formula.flower.abund <- formula(VegAbundance | subset(Weights) ~
 formula.bee.div <- formula(BeeDiversity | subset(Weights)~
                                VegDiversity +
                                    TempCStart +
-                                   MeanCanopy*ThinStatus +
-                                   Year +
+                                   MeanCanopy +
                                    (1|Stand)
                            )
 
 formula.bee.abund <- formula(BeeAbundance | subset(Weights)~
                                  VegAbundance +
                                      TempCStart +
-                                     MeanCanopy*ThinStatus +
-                                     Year +
+                                     MeanCanopy +
                                      (1|Stand)
                              )
 
@@ -142,16 +141,14 @@ formula.bee.abund <- formula(BeeAbundance | subset(Weights)~
 formula.bee.div.hu <- formula(hu ~
                                   VegDiversity +
                                   TempCStart +
-                                  MeanCanopy*ThinStatus +
-                                  Year +
+                                  MeanCanopy +
                                   (1|Stand)
                               )
 
 formula.bee.abund.hu <- formula(hu ~
                                     VegAbundance +
                                     TempCStart +
-                                    MeanCanopy*ThinStatus +
-                                    Year +
+                                    MeanCanopy +
                                     (1|Stand)
                                 )
 
@@ -215,26 +212,29 @@ bform <-  bf.fdiv + bf.fabund + bf.babund + bf.bdiv + bf.par +
 ## ## **********************************************************
 ## ## looks good
 run_plot_freq_model_diagnostics(remove_subset_formula(formula.flower.div),
-                                this_data=spec.net[spec.net$Weights == 1,],
+                                this_data=
+                                    spec.net[spec.net$Weights == 1,],
                                 this_family="students")
 
 ## looks great
 run_plot_freq_model_diagnostics(remove_subset_formula(formula.flower.abund),
-                                this_data=spec.net[spec.net$Weights == 1,],
+                                this_data=
+                                    spec.net[spec.net$Weights == 1,],
                                 this_family="gaussian")
 
 ## potentially an issue with homogeneity of variance, hard to say
 ## because no support for checking hurdle lognormal  models (only zero
 ## inflated)
 run_plot_freq_model_diagnostics(remove_subset_formula(formula.bee.div),
-                                this_data=spec.net[spec.net$Weights == 1,],
+                                this_data=
+                                    spec.net[spec.net$Weights == 1,],
                                 this_family="hurdle_gamma")
 
 ## potentially an issue with homogeneity of variance, hard to say
 ## because no support for checking hurdle models (only zero
 ## inflated)
 run_plot_freq_model_diagnostics(remove_subset_formula(formula.bee.abund),
-                                this_data=spec.net[spec.net$Weights == 1,],
+                                this_data= spec.net[spec.net$Weights == 1,],
                                 this_family="hurdle_gamma")
 
 freq.formula <- as.formula(paste("HasCrithidia",
@@ -242,14 +242,13 @@ freq.formula <- as.formula(paste("HasCrithidia",
                                        collapse=" + "),
                                  sep=" ~ "))
 run_plot_freq_model_diagnostics(freq.formula,
-                                this_data=spec.net[spec.net$WeightsPar == 1,],
+                                this_data=
+                                    spec.net[spec.net$Weights == 1,],
                                 this_family="bernoulli")
 
 ## **********************************************************
 
-## spec.net$ThinStatus <- factor(spec.net$ThinStatus, levels=c("Y", "N"))
-
-## run model
+## run model with only thinned stands
 fit.bombus <- brm(bform, spec.net,
                   cores=ncores,
                   iter = 10^4,
