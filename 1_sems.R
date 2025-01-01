@@ -35,7 +35,7 @@ load("data/phylo.Rdata")
 screened.bombus <- unique(spec.net$GenusSpecies[spec.net$Apidae == 1 &
                                                 spec.net$Genus == "Bombus"])
 screened.bombus <- screened.bombus[!is.na(screened.bombus)]
-spec.net$MeanITD[!spec.net$GenusSpecies %in% screened.bombus] <- NA
+spec.net$ForageDist_km[!spec.net$GenusSpecies %in% screened.bombus] <- NA
 spec.net$rare.degree[!spec.net$GenusSpecies %in% screened.bombus] <- NA
 
 ## **********************************************************
