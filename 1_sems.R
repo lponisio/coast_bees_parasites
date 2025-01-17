@@ -1,4 +1,4 @@
-setwd("coast_bees_parasites")
+setwd("coast_bees_parasites/coast_bees_parasites")
 
 ## Prepares the data for model fitting (standardizes continuous
 ## variables, creates dummy variables to be used as weights to all
@@ -33,7 +33,9 @@ load("data/phylo.Rdata")
 ## screened, so put NA for other species to avoid weird
 ## standardization
 
-spec.net <- spec.net[spec.net$ThinStatus == "Y",]
+#subsetting to thins and young stands
+spec.net <- spec.net[spec.net$ThinStatus == "Y" |
+                       spec.net$DomTreeDiam_cm < 30, ]
 
 screened.bombus <- unique(spec.net$GenusSpecies[spec.net$Apidae == 1 &
                                                 spec.net$Genus == "Bombus"])
@@ -51,7 +53,8 @@ spec.net$rare.degree[!spec.net$GenusSpecies %in% screened.bombus] <- NA
 ## standardize the data at the correct level.
 
 ## standardize by stand, year
-vars_year <- c("MeanCanopy")
+vars_year <- c("MeanCanopy",
+               "DomTreeDiam_cm")
 
 ## standardize by stand, year, and sample round
 vars_year_sr <- c(
@@ -108,6 +111,7 @@ spec.net <- prepDataSEM(spec.net, variables.to.log, variables.to.log.p1,
 formula.flower.div <- formula(VegDiversity | subset(Weights) ~
                                   DoyStart + I(DoyStart^2) +
                                       MeanCanopy +
+                                      DomTreeDiam_cm +
                                       (1|Stand)
                               )
 
@@ -115,6 +119,7 @@ formula.flower.div <- formula(VegDiversity | subset(Weights) ~
 formula.flower.abund <- formula(VegAbundance | subset(Weights) ~
                                     DoyStart +  I(DoyStart^2) +
                                         MeanCanopy +
+                                        DomTreeDiam_cm +
                                         (1|Stand)
                                 )
 
