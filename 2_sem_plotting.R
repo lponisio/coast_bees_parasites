@@ -16,10 +16,62 @@ source("src/init.R")
 source("src/misc.R")
 
 ## ***********************************************************************
-## descriptive bar charts
+## stand type boxplots
 ## ***********************************************************************
 
 load("data/spec_net_coast.Rdata")
+
+#bins: young stands 0-20, thins 20-40, thins 40-60, non thinned old
+spec.net$categories <- with(spec.net, 
+                      ifelse(spec.net$ThinStatus == "N" & 
+                               spec.net$DomTreeDiam_cm <= 20, "Young",
+                      ifelse(spec.net$ThinStatus == "Y" & 
+                               spec.net$DomTreeDiam_cm > 20 & 
+                               spec.net$DomTreeDiam_cm <= 40, "Thin_young",
+                      ifelse(spec.net$ThinStatus == "Y" & 
+                               spec.net$DomTreeDiam_cm > 40 & 
+                               spec.net$DomTreeDiam_cm <= 60, "Thin_older",
+                      ifelse(spec.net$ThinStatus == "N" & 
+                               spec.net$DomTreeDiam_cm > 60, "Old",
+                      "Other")))))
+
+box1 <- ggplot(spec.net, aes(x = categories, y = VegAbundance)) +
+  geom_boxplot() +
+  labs(title = "Veg abundance per stand type", 
+       x = "Categories", 
+       y = "Veg ab") +
+  theme_minimal()
+
+box2 <- ggplot(spec.net, aes(x = categories, y = VegDiversity)) +
+  geom_boxplot() +
+  labs(title = "Veg diversity per stand type", 
+       x = "Categories", 
+       y = "Veg div") +
+  theme_minimal()
+
+box3 <- ggplot(spec.net, aes(x = categories, y = BeeAbundance)) +
+  geom_boxplot() +
+  labs(title = "Bee abundance per stand type", 
+       x = "Categories", 
+       y = "Bee ab") +
+  theme_minimal()
+
+box4 <- ggplot(spec.net, aes(x = categories, y = BeeDiversity)) +
+  geom_boxplot() +
+  labs(title = "Bee diversity per stand type", 
+       x = "Categories", 
+       y = "Bee div") +
+  theme_minimal()
+
+all.box <- ggarrange(box1, box2, box3, box4,
+                     nrow=2, ncol=2, labels = c("A", "B", "C", "D"),
+                     common.legend = TRUE, legend="bottom")
+
+ggsave(all.box, file="figures/boxplots.pdf", height=7, width=10)
+
+## ***********************************************************************
+## descriptive bar charts
+## ***********************************************************************
 
 ## binning canopy - remember that canopy is unintuitive and 0-25 is lowest
 spec.net$CanopyBin <- cut(spec.net$MeanCanopy,
