@@ -1,4 +1,4 @@
-setwd("coast_bees_parasites/coast_bees_parasites")
+setwd("/coast_bees_parasites")
 
 ## Prepares the data for model fitting (standardizes continuous
 ## variables, creates dummy variables to be used as weights to all
@@ -33,10 +33,6 @@ load("data/phylo.Rdata")
 ## screened, so put NA for other species to avoid weird
 ## standardization
 
-#subsetting to thins and young stands
-spec.net <- spec.net[spec.net$ThinStatus == "Y" |
-                       spec.net$DomTreeDiam_cm < 30, ]
-
 screened.bombus <- unique(spec.net$GenusSpecies[spec.net$Apidae == 1 &
                                                 spec.net$Genus == "Bombus"])
 screened.bombus <- screened.bombus[!is.na(screened.bombus)]
@@ -53,8 +49,7 @@ spec.net$rare.degree[!spec.net$GenusSpecies %in% screened.bombus] <- NA
 ## standardize the data at the correct level.
 
 ## standardize by stand, year
-vars_year <- c("MeanCanopy",
-               "DomTreeDiam_cm")
+vars_year <- c("MeanCanopy")
 
 ## standardize by stand, year, and sample round
 vars_year_sr <- c(
@@ -94,7 +89,6 @@ dim(spec.net)
 spec.orig <- prepDataSEM(spec.net, variables.to.log,
                          variables.to.log.p1,
                          standardize=FALSE)
-
 
 ## Make SEM weights and standardize data.
 spec.net <- prepDataSEM(spec.net, variables.to.log, variables.to.log.p1,
