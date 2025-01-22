@@ -80,12 +80,12 @@ ggsave(all.box, file="figures/boxplots.pdf", height=7, width=10)
 ## ***********************************************************************
 
 ## binning canopy - remember that canopy is unintuitive and 0-25 is lowest
-spec.net$CanopyBin <- cut(spec.net$MeanCanopy,
-                     breaks = c(0, 25, 75, 100),
-                     include.lowest = T, right = F)
+# spec.net$CanopyBin <- cut(spec.net$MeanCanopy,
+#                      breaks = c(0, 25, 75, 100),
+#                      include.lowest = T, right = F)
 
 ## veg abundance summary by canopy type
-spec.net <- spec.net[!is.na(spec.net$CanopyBin),]
+spec.net <- spec.net[!is.na(spec.net$categories),]
 
 stats <- spec.net %>%
   group_by(ThinStatus) %>%
@@ -96,43 +96,43 @@ spec.net.2 <- spec.net %>%
   filter(ThinStatus == 'N')
 
 stats2 <- spec.net.2 %>%
-  group_by(CanopyBin) %>%
+  group_by(categories) %>%
   summarise(meanveg =mean(VegAbundance),
             sdveg = sd(VegAbundance))
 
 ## bee diversity summary by canopy type
 stats <- spec.net %>%
-  group_by(ThinStatus) %>%
+  group_by(categories) %>%
   summarise(meanbee =mean(BeeDiversity),
             sdbee = sd(BeeDiversity))
 
 stats2 <- spec.net.2 %>%
-  group_by(CanopyBin) %>%
+  group_by(StandType) %>%
   summarise(meanbee =mean(BeeDiversity),
             sdbee = sd(BeeDiversity))
 
-spec.net <- spec.net[!is.na(spec.net$CanopyBin),]
-
-## per canopy type mean and sd of veg abund/diversity
-closed <- spec.net[spec.net$CanopyBin %in% c("[0,25)"),]
-intermed <- spec.net[spec.net$CanopyBin %in% c("[25,75)"),]
-open <- spec.net[spec.net$CanopyBin %in% c("[75,100]"),]
+spec.net <- spec.net[!is.na(spec.net$categories),]
+# 
+# ## per canopy type mean and sd of veg abund/diversity
+# closed <- spec.net[spec.net$CanopyBin %in% c("[0,25)"),]
+# intermed <- spec.net[spec.net$CanopyBin %in% c("[25,75)"),]
+# open <- spec.net[spec.net$CanopyBin %in% c("[75,100]"),]
 
 ## ***********************************************************************
 ## all bee genus bar graph
 ## ***********************************************************************
 ## summarize individuals per n type of stand in each category
 standstype <- spec.net %>%
-  group_by(CanopyBin) %>%
+  group_by(categories) %>%
   summarise(count = n_distinct(Stand))
 
 beesper <- spec.net %>%
-  group_by(CanopyBin, Genus) %>%
+  group_by(categories, Genus) %>%
   summarise(count = n()) %>%
   filter(!is.na(Genus))
 
 summary <- beesper %>%
-  left_join(standstype, by="CanopyBin") %>%
+  left_join(standstype, by="categories") %>%
   mutate(avg = count.x/count.y)
 
 ## modifying to show prop of total
@@ -140,10 +140,10 @@ bee.spp.bar <- ggplot(summary,
                          aes(y = fct_reorder(Genus, avg, .desc = TRUE),
                              x = avg)) +
   geom_bar(stat = 'identity',
-           aes(fill = factor(CanopyBin)), position = "dodge") +
-  scale_fill_manual(values=c('#004D40', '#FFC107', 'lightblue'),
+           aes(fill = factor(categories)), position = "dodge") +
+  scale_fill_manual(values=c('lightblue', '#FFC107', 'darkorange', '#004D40'),
                     name = "Canopy type",
-                    labels=c('Closed', 'Intermediate', 'Open')) +
+                    labels=c('Recent harvest', 'Thin 1', 'Thin 2', 'Mature')) +
   theme_classic() +
   theme(legend.position = "top",
                 axis.text.y = element_text(angle = 0, hjust = 1,
@@ -163,30 +163,29 @@ bee.spp.bar
 ## ***********************************************************************
 ## summarize individuals per n type of stand in each category
 standstype <- spec.net %>%
-  group_by(CanopyBin) %>%
+  group_by(categories) %>%
   summarise(count = n_distinct(Stand))
 
 plantper <- spec.net %>%
-  group_by(CanopyBin, PlantGenusSpecies) %>%
+  group_by(categories, PlantGenusSpecies) %>%
   summarise(count = n()) %>%
   filter(!is.na(PlantGenusSpecies))
 
 summary <- plantper %>%
-  left_join(standstype, by="CanopyBin") %>%
+  left_join(standstype, by="categories") %>%
   mutate(avg = count.x/count.y) 
 
 summary <- subset(summary, summary$count.x>2) 
-
 
 ## modifying to show prop of total
 plant.bar <- ggplot(summary,
                       aes(y = fct_reorder(PlantGenusSpecies, avg, .desc = TRUE),
                           x = avg)) +
   geom_bar(stat = 'identity',
-           aes(fill = factor(CanopyBin)), position = "dodge") +
-  scale_fill_manual(values=c('#004D40', '#FFC107', 'lightblue'),
+           aes(fill = factor(categories)), position = "dodge") +
+  scale_fill_manual(values=c('lightblue', '#FFC107', 'darkorange', '#004D40'),
                     name = "Canopy type",
-                    labels=c('Closed', 'Intermediate', 'Open')) +
+                    labels=c('Recent harvest', 'Thin 1', 'Thin 2', 'Mature')) +
   theme_classic() +
   theme(legend.position = "top",
         axis.text.y = element_text(angle = 0, hjust = 1,
@@ -208,15 +207,16 @@ ggsave(plant.bar, file="figures/plant_bar.pdf",
 ## bombus species bar graph
 ## ***********************************************************************
 
+#still as canopybin and not standcat
 bomb.orig <- spec.net %>%
   filter(Genus == 'Bombus')
 
 beesper <- bomb.orig %>%
-  group_by(CanopyBin, GenusSpecies) %>%
+  group_by(categories, GenusSpecies) %>%
   summarise(count = n())
 
 bombsummary <- beesper %>%
-  left_join(standstype, by="CanopyBin") %>%
+  left_join(standstype, by="categories") %>%
   mutate(avg = count.x/count.y)
 
 #modifying to show prop of total
@@ -224,9 +224,9 @@ bombus.spp.bar <- ggplot(bombsummary,
                          aes(y = fct_reorder(GenusSpecies, avg, .desc = TRUE),
                              x = avg)) +
   geom_bar(stat = 'identity',
-           aes(fill = factor(CanopyBin)), position = "dodge",
-           show.legend = F) +
-  scale_fill_manual(values=c('#004D40', '#FFC107', 'lightblue')) +
+           aes(fill = factor(categories)), position = "dodge",
+           show.legend = F) + 
+  scale_fill_manual(values=c('lightblue', '#FFC107', 'darkorange', '#004D40')) +
   theme_classic() +
   theme(axis.text.y = element_text(angle = 0, hjust = 1,
                                    face ='italic', color = 'black'),
@@ -247,7 +247,7 @@ parasite.count.table <- spec.net %>%
            CrithidiaExpoeki,
            CrithidiaSpp, NosemaBombi, NosemaCeranae, ParasitePresence,
            ParasiteRichness,
-         CanopyBin) %>%
+         categories) %>%
   pivot_longer(cols=c(ApicystisSpp, AscosphaeraSpp, CrithidiaBombi,
                       CrithidiaSpp, CrithidiaExpoeki, NosemaCeranae,
                       NosemaBombi),
@@ -303,7 +303,6 @@ load(file="saved/CrithidiaFitAllBee_coast.Rdata")
 ## log "ForageDist_km", "rare.degree"
 
 ## Bee diversity and bee abundance are not scaled
-
 
 new.net <- spec.net[spec.net$Weights == 1, ]
 new.orig <- spec.orig[spec.orig$Weights == 1, ]
