@@ -111,8 +111,6 @@ stats2 <- spec.net.2 %>%
   summarise(meanbee =mean(BeeDiversity),
             sdbee = sd(BeeDiversity))
 
-spec.net <- spec.net[!is.na(spec.net$categories),]
-# 
 # ## per canopy type mean and sd of veg abund/diversity
 # closed <- spec.net[spec.net$CanopyBin %in% c("[0,25)"),]
 # intermed <- spec.net[spec.net$CanopyBin %in% c("[25,75)"),]
@@ -302,6 +300,10 @@ load(file="saved/CrithidiaFitAllBee_coast.Rdata")
 ## log + 1  Veg abundance, Bee diversity and bee abundance
 ## log "ForageDist_km", "rare.degree"
 
+##Looking at metrics in thinned stands only now
+spec.net <- spec.net %>%
+  filter(ThinStatus != "N")
+
 ## Bee diversity and bee abundance are not scaled
 
 new.net <- spec.net[spec.net$Weights == 1, ]
@@ -352,20 +354,24 @@ all.cond.effects <- conditional_effects(fit.bombus)
 ## thinned slope is not strongly different from zero
 
 vdiv <-
-    all.cond.effects[["VegDiversity.VegDiversity_MeanCanopy:ThinStatus"]]
+    all.cond.effects[["VegDiversity.VegDiversity_MeanCanopy"]]
 
 vdiv.stand <- ggplot(vdiv, aes(x = MeanCanopy,
                                y = estimate__)) +
-    geom_line(aes(x = MeanCanopy, y=estimate__ ,
-                  color = ThinStatus, linetype = ThinStatus), size=1.5) +
-    geom_ribbon(aes(ymin = lower__, ymax = upper__, fill=ThinStatus,
+    geom_line(aes(x = MeanCanopy, y=estimate__ 
+                  #,
+                  #color = ThinStatus, linetype = ThinStatus
+                  ), size=1.5) +
+    geom_ribbon(aes(ymin = lower__, ymax = upper__, 
+                    #fill=ThinStatus,
                     alpha=0.3)) +
-    scale_fill_manual(values = c("darkolivegreen4", "forestgreen"),
-                      labels = c("Unthinned", "thinned")) +
+    #scale_fill_manual(values = c("darkolivegreen4", "forestgreen"),
+     #                 labels = c("Unthinned", "thinned")) +
     scale_color_manual(values = c("black", "#999999")) +
     geom_point(data=new.net,
                aes(x=MeanCanopy, y=VegDiversity,
-                   color = ThinStatus), cex=2) +
+    #               color = ThinStatus
+                    ), cex=2) +
     geom_point(data=new.net,
                aes(x=MeanCanopy, y=VegDiversity), cex=2, pch=1) +
     labs(x = "", y = "Floral diversity",
@@ -390,20 +396,16 @@ vdiv.stand <- ggplot(vdiv, aes(x = MeanCanopy,
 ## thinned
 
 vabund <-
-    all.cond.effects[["VegAbundance.VegAbundance_MeanCanopy:ThinStatus"]]
+    all.cond.effects[["VegAbundance.VegAbundance_MeanCanopy"]]
 
 vabund.stand <- ggplot(vabund, aes(x = MeanCanopy,
                                    y = estimate__)) +
-    geom_line(aes(x = MeanCanopy, y=estimate__ ,
-                  color = ThinStatus),  size=1.5) +
-    geom_ribbon(aes(ymin = lower__, ymax = upper__, fill=ThinStatus,
+    geom_line(aes(x = MeanCanopy, y=estimate__),  size=1.5) +
+    geom_ribbon(aes(ymin = lower__, ymax = upper__, 
                     alpha=0.3)) +
-    scale_fill_manual(values = c("darkolivegreen4", "forestgreen"),
-                      labels = c("Unthinned", "Thinned")) +
     scale_color_manual(values = c("black", "#999999")) +
     geom_point(data=new.net,
-               aes(x=MeanCanopy, y=VegAbundance,
-                   color = ThinStatus), cex=2) +
+               aes(x=MeanCanopy, y=VegAbundance), cex=2) +
     geom_point(data=new.net,
                aes(x=MeanCanopy, y=VegAbundance), cex=2, pch=1) +
     labs(x = "", y = "Floral abundance (log)",
@@ -428,20 +430,15 @@ vabund.stand <- ggplot(vabund, aes(x = MeanCanopy,
 ## thinned
 
 bdiv <-
-    all.cond.effects[["BeeDiversity.BeeDiversity_MeanCanopy:ThinStatus"]]
+    all.cond.effects[["BeeDiversity.BeeDiversity_MeanCanopy"]]
 
 bdiv.stand <- ggplot(bdiv, aes(x = MeanCanopy,
                                y = estimate__)) +
-    geom_line(aes(x = MeanCanopy, y=estimate__ ,
-                  color = ThinStatus, linetype = ThinStatus), size=1.5) +
-    geom_ribbon(aes(ymin = lower__, ymax = upper__, fill=ThinStatus,
+    geom_line(aes(x = MeanCanopy, y=estimate__), size=1.5) +
+    geom_ribbon(aes(ymin = lower__, ymax = upper__, 
                     alpha=0.3)) +
-    scale_fill_manual(values = c("darkolivegreen4", "forestgreen"),
-                      labels = c("Unthinned", "Thinned")) +
-    scale_color_manual(values = c("black", "#999999")) +
     geom_point(data=new.net,
-               aes(x=MeanCanopy, y=BeeDiversity,
-                   color = ThinStatus), cex=2) +
+               aes(x=MeanCanopy, y=BeeDiversity), cex=2) +
     geom_point(data=new.net,
                aes(x=MeanCanopy, y=BeeDiversity), cex=2, pch=1) +
     labs(x = "Canopy openness", y = "Bee diversity (log)",
@@ -463,21 +460,16 @@ bdiv.stand <- ggplot(bdiv, aes(x = MeanCanopy,
 ## ***********************************************************************
 
 babund <-
-    all.cond.effects[["BeeAbundance.BeeAbundance_MeanCanopy:ThinStatus"]]
+    all.cond.effects[["BeeAbundance.BeeAbundance_MeanCanopy"]]
 
 babund.stand <- ggplot(babund, aes(x = MeanCanopy,
                                    y = estimate__)) +
-    geom_line(aes(x = MeanCanopy, y=estimate__ ,
-                  color = ThinStatus,
-                  linetype = ThinStatus), size=1.5) +
-    geom_ribbon(aes(ymin = lower__, ymax = upper__, fill=ThinStatus,
+    geom_line(aes(x = MeanCanopy, y=estimate__, size=1.5)) +
+    geom_ribbon(aes(ymin = lower__, ymax = upper__, 
                     alpha=0.3)) +
-    scale_fill_manual(values = c("darkolivegreen4", "forestgreen"),
-                      labels = c("Unthinned", "Thinned")) +
     scale_color_manual(values = c("black", "#999999")) +
     geom_point(data=new.net,
-               aes(x=MeanCanopy, y=BeeAbundance,
-                   color = ThinStatus), cex=2) +
+               aes(x=MeanCanopy, y=BeeAbundance), cex=2) +
     geom_point(data=new.net,
                aes(x=MeanCanopy, y=BeeAbundance), cex=2, pch=1) +
     labs(x = "Canopy openness", y = "Bee abundance (log)",
@@ -516,8 +508,7 @@ babund.fabund.p <- ggplot(babund.fabund, aes(x = VegAbundance,
     scale_fill_manual(values = c("dodgerblue")) +
     scale_color_manual(values = c("black", "#999999")) +
     geom_point(data=new.net,
-               aes(x=VegAbundance, y=BeeAbundance,
-                   color = ThinStatus), cex=2) +
+               aes(x=VegAbundance, y=BeeAbundance), cex=2) +
     geom_point(data=new.net,
                aes(x=VegAbundance, y=BeeAbundance), cex=2, pch=1) +
     labs(x = "Floral abundance (log)", y = "Bee abundance (log)",
