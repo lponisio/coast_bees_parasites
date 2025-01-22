@@ -24,44 +24,50 @@ load("data/spec_net_coast.Rdata")
 #bins: young stands 0-20, thins 20-40, thins 40-60, non thinned old
 spec.net$categories <- with(spec.net, 
                       ifelse(spec.net$ThinStatus == "N" & 
-                               spec.net$DomTreeDiam_cm <= 20, "Young",
+                               spec.net$DomTreeDiam_cm <= 20, "Recent harvest",
                       ifelse(spec.net$ThinStatus == "Y" & 
                                spec.net$DomTreeDiam_cm > 20 & 
-                               spec.net$DomTreeDiam_cm <= 40, "Thin_young",
+                               spec.net$DomTreeDiam_cm <= 40, "Thin 1",
                       ifelse(spec.net$ThinStatus == "Y" & 
                                spec.net$DomTreeDiam_cm > 40 & 
-                               spec.net$DomTreeDiam_cm <= 60, "Thin_older",
+                               spec.net$DomTreeDiam_cm <= 60, "Thin 2",
                       ifelse(spec.net$ThinStatus == "N" & 
-                               spec.net$DomTreeDiam_cm > 60, "Old",
+                               spec.net$DomTreeDiam_cm > 60, "Mature",
                       "Other")))))
 
-box1 <- ggplot(spec.net, aes(x = categories, y = VegAbundance)) +
+##Drop NA and Other - stands that are unthinned and mid-aged or don't 
+##have thin/dbh data 
+
+spec.net <- spec.net %>%
+  filter(!is.na(categories) & categories != "Other")
+
+spec.net$categories <- 
+  factor(spec.net$categories, levels = c("Recent harvest", "Thin 1",
+                                       "Thin 2", "Mature"))
+
+box1 <- ggplot(spec.net, aes(x = categories, y = log(VegAbundance))) +
   geom_boxplot() +
-  labs(title = "Veg abundance per stand type", 
-       x = "Categories", 
-       y = "Veg ab") +
-  theme_minimal()
+  labs(x = "Stand type", 
+       y = "Flowering plant abundance (log)") +
+  theme_classic()
 
 box2 <- ggplot(spec.net, aes(x = categories, y = VegDiversity)) +
   geom_boxplot() +
-  labs(title = "Veg diversity per stand type", 
-       x = "Categories", 
-       y = "Veg div") +
-  theme_minimal()
+  labs(x = "Stand type", 
+       y = "Flowering plant diversity") +
+  theme_classic()
 
 box3 <- ggplot(spec.net, aes(x = categories, y = BeeAbundance)) +
   geom_boxplot() +
-  labs(title = "Bee abundance per stand type", 
-       x = "Categories", 
-       y = "Bee ab") +
-  theme_minimal()
+  labs(x = "Stand type", 
+       y = "Bee abundance") +
+  theme_classic()
 
 box4 <- ggplot(spec.net, aes(x = categories, y = BeeDiversity)) +
   geom_boxplot() +
-  labs(title = "Bee diversity per stand type", 
-       x = "Categories", 
-       y = "Bee div") +
-  theme_minimal()
+  labs(x = "Stand type", 
+       y = "Bee diversity") +
+  theme_classic()
 
 all.box <- ggarrange(box1, box2, box3, box4,
                      nrow=2, ncol=2, labels = c("A", "B", "C", "D"),
