@@ -42,8 +42,10 @@ spec.net <- spec.net %>%
   filter(!is.na(categories) & categories != "Other")
 
 spec.net$categories <- 
-  factor(spec.net$categories, levels = c("Recent harvest", "Thin 1",
-                                       "Thin 2", "Mature"))
+  factor(spec.net$categories, levels = c("Recent harvest", 
+                                         "Thin 1",
+                                         "Thin 2", 
+                                         "Mature"))
 
 box1 <- ggplot(spec.net, aes(x = categories, y = log(VegAbundance))) +
   geom_boxplot() +
@@ -273,8 +275,6 @@ parasite.hist <- parasite.count.table %>%
                             'CrithidiaSpp'=expression(paste(italic('Crithidia'), ' spp.')),
                             parse=TRUE))  + labs(fill = "Canopy openness")
 
-parasite.hist
-
 left.col <- ggarrange(bee.spp.bar, ncol=1, nrow=1,
                       labels = c("A"))
 
@@ -302,6 +302,8 @@ load(file="saved/CrithidiaFitAllBee_coast.Rdata")
 
 ##Looking at metrics in thinned stands only now
 spec.net <- spec.net %>%
+  filter(ThinStatus != "N")
+spec.orig <- spec.orig %>%
   filter(ThinStatus != "N")
 
 ## Bee diversity and bee abundance are not scaled
@@ -566,24 +568,24 @@ ggsave(crithidia.foraging.dist.p, file="figures/crithidia_foragingdis.pdf",
 ## ***********************************************************************
 ## scatterplot of canopy cover and dbh, highlighting thins
 ## ***********************************************************************
-
-stands <- spec.orig[!duplicated(spec.orig$StandRoundYear), ]
-
-standsplot <- stands %>%
-  ggplot(aes(x=DomTreeDiam_cm, y=MeanCanopy, color=ThinStatus)) +
-  geom_point() +
-  scale_color_manual(values = c("Y" = "#999999", "N" = "black"),
-                     labels=c('Not thinned', 'Thinned'),
-                     name="Management history") +
-  labs(x="Dominant tree class DBH (cm)", y="Canopy openness") +
-  xlim(0,75) +
-  theme_classic()+
-  theme(
-    axis.text.x = element_text(color="black"),
-    axis.text.y = element_text(color="black"),
-    axis.ticks = element_line(color = "black"))
-
-standsplot
-
-ggsave(standsplot, file="figures/canopyDBH.pdf",
-       height=2, width=4)
+# 
+# stands <- spec.orig[!duplicated(spec.orig$StandRoundYear), ]
+# 
+# standsplot <- stands %>%
+#   ggplot(aes(x=DomTreeDiam_cm, y=MeanCanopy, color=ThinStatus)) +
+#   geom_point() +
+#   scale_color_manual(values = c("Y" = "#999999", "N" = "black"),
+#                      labels=c('Not thinned', 'Thinned'),
+#                      name="Management history") +
+#   labs(x="Dominant tree class DBH (cm)", y="Canopy openness") +
+#   xlim(0,75) +
+#   theme_classic()+
+#   theme(
+#     axis.text.x = element_text(color="black"),
+#     axis.text.y = element_text(color="black"),
+#     axis.ticks = element_line(color = "black"))
+# 
+# standsplot
+# 
+# ggsave(standsplot, file="figures/canopyDBH.pdf",
+#        height=2, width=4)
