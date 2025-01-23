@@ -86,18 +86,17 @@ ggsave(all.box, file="figures/boxplots.pdf", height=7, width=10)
 #                      breaks = c(0, 25, 75, 100),
 #                      include.lowest = T, right = F)
 
-## veg abundance summary by canopy type
+## veg abundance summary
 spec.net <- spec.net[!is.na(spec.net$categories),]
-
-stats <- spec.net %>%
-  group_by(ThinStatus) %>%
-  summarise(meanveg =mean(VegAbundance),
-            sdveg = sd(VegAbundance))
-
 spec.net.2 <- spec.net %>%
   filter(ThinStatus == 'N')
 
-stats2 <- spec.net.2 %>%
+vegstats <- spec.net %>%
+  group_by(categories) %>%
+  summarise(meanveg =mean(VegDiversity),
+            sdveg = sd(VegDiversity))
+
+vegstats2 <- spec.net %>%
   group_by(categories) %>%
   summarise(meanveg =mean(VegAbundance),
             sdveg = sd(VegAbundance))
@@ -108,8 +107,13 @@ stats <- spec.net %>%
   summarise(meanbee =mean(BeeDiversity),
             sdbee = sd(BeeDiversity))
 
-stats2 <- spec.net.2 %>%
-  group_by(StandType) %>%
+beestats <- spec.net %>%
+  group_by(categories) %>%
+  summarise(meanbee =mean(BeeAbundance),
+            sdbee = sd(BeeAbundance))
+
+beestats2 <- spec.net %>%
+  group_by(categories) %>%
   summarise(meanbee =mean(BeeDiversity),
             sdbee = sd(BeeDiversity))
 
