@@ -105,7 +105,6 @@ spec.net <- prepDataSEM(spec.net, variables.to.log, variables.to.log.p1,
 formula.flower.div <- formula(VegDiversity | subset(Weights) ~
                                   DoyStart + I(DoyStart^2) +
                                       MeanCanopy +
-                                      DomTreeDiam_cm +
                                       (1|Stand)
                               )
 
@@ -113,7 +112,6 @@ formula.flower.div <- formula(VegDiversity | subset(Weights) ~
 formula.flower.abund <- formula(VegAbundance | subset(Weights) ~
                                     DoyStart +  I(DoyStart^2) +
                                         MeanCanopy +
-                                        DomTreeDiam_cm +
                                         (1|Stand)
                                 )
 
@@ -151,6 +149,58 @@ formula.bee.abund.hu <- formula(hu ~
                                     (1|Stand)
                                 )
 
+
+## **********************************************************
+## Model 1.1b: formula for forest effects on floral community in STAND TYPES
+## **********************************************************
+## define all the formulas for the different parts of the models
+
+type.formula.flower.div <- formula(VegDiversity | subset(Weights) ~
+                                DoyStart + I(DoyStart^2) +
+                                categories +
+                                (1|Stand)
+)
+
+## flower abund with simpson div
+type.formula.flower.abund <- formula(VegAbundance | subset(Weights) ~
+                                  DoyStart +  I(DoyStart^2) +
+                                  categories +
+                                  (1|Stand)
+)
+
+## **********************************************************
+## Model 1.2b: formula for forest effects on bee community in STAND TYPES
+## **********************************************************
+
+type.formula.bee.div <- formula(BeeDiversity | subset(Weights)~
+                             VegDiversity +
+                             TempCStart +
+                             categories +
+                             (1|Stand)
+)
+
+type.formula.bee.abund <- formula(BeeAbundance | subset(Weights)~
+                               VegAbundance +
+                               TempCStart +
+                               categories +
+                               (1|Stand)
+)
+
+
+## hurdle models
+type.formula.bee.div.hu <- formula(hu ~
+                                VegDiversity +
+                                TempCStart +
+                                categories +
+                                (1|Stand)
+)
+
+type.formula.bee.abund.hu <- formula(hu ~
+                                  VegAbundance +
+                                  TempCStart +
+                                  categories +
+                                  (1|Stand)
+)
 
 ## **********************************************************
 ## Model 1.3: formula for bee community effects on parasitism
