@@ -48,8 +48,8 @@ spec.net$rare.degree[!spec.net$GenusSpecies %in% screened.bombus] <- NA
 ## at the indivudal-level for the parasite model, we need to carefully
 ## standardize the data at the correct level.
 
-## standardize by stand, year
-vars_year <- c("MeanCanopy")
+## ## standardize by stand, year
+## vars_year <- c("MeanCanopy")
 
 ## standardize by stand, year, and sample round
 vars_year_sr <- c(
@@ -93,7 +93,7 @@ spec.orig <- prepDataSEM(spec.net, variables.to.log,
 ## Make SEM weights and standardize data.
 spec.net <- prepDataSEM(spec.net, variables.to.log, variables.to.log.p1,
                         vars_yearsr=vars_year_sr,
-                        vars_year=vars_year,
+                        ## vars_year=vars_year,
                         vars_sp=vars_sp,
                         vars_sp_yearsr=vars_sp_yearsr)
 
@@ -103,83 +103,30 @@ spec.net <- prepDataSEM(spec.net, variables.to.log, variables.to.log.p1,
 ## define all the formulas for the different parts of the models
 
 formula.flower.div <- formula(VegDiversity | subset(Weights) ~
-                                  DoyStart + I(DoyStart^2) +
-                                      MeanCanopy +
-                                      (1|Stand)
-                              )
-
-## flower abund with simpson div
-formula.flower.abund <- formula(VegAbundance | subset(Weights) ~
-                                    DoyStart +  I(DoyStart^2) +
-                                        MeanCanopy +
-                                        (1|Stand)
-                                )
-
-## **********************************************************
-## Model 1.2: formula for forest effects on bee community
-## **********************************************************
-
-formula.bee.div <- formula(BeeDiversity | subset(Weights)~
-                               VegDiversity +
-                                   TempCStart +
-                                   MeanCanopy +
-                                   (1|Stand)
-                           )
-
-formula.bee.abund <- formula(BeeAbundance | subset(Weights)~
-                                 VegAbundance +
-                                     TempCStart +
-                                     MeanCanopy +
-                                     (1|Stand)
-                             )
-
-
-## hurdle models
-formula.bee.div.hu <- formula(hu ~
-                                  VegDiversity +
-                                  TempCStart +
-                                  MeanCanopy +
-                                  (1|Stand)
-                              )
-
-formula.bee.abund.hu <- formula(hu ~
-                                    VegAbundance +
-                                    TempCStart +
-                                    MeanCanopy +
-                                    (1|Stand)
-                                )
-
-
-## **********************************************************
-## Model 1.1b: formula for forest effects on floral community in STAND TYPES
-## **********************************************************
-## define all the formulas for the different parts of the models
-
-type.formula.flower.div <- formula(VegDiversity | subset(Weights) ~
                                 DoyStart + I(DoyStart^2) +
                                 categories +
                                 (1|Stand)
 )
 
 ## flower abund with simpson div
-type.formula.flower.abund <- formula(VegAbundance | subset(Weights) ~
+formula.flower.abund <- formula(VegAbundance | subset(Weights) ~
                                   DoyStart +  I(DoyStart^2) +
                                   categories +
                                   (1|Stand)
 )
 
 ## **********************************************************
-## Model 1.2b: formula for forest effects on bee community in STAND TYPES
+## Model 1.2: formula for forest effects on bee community 
 ## **********************************************************
 
-type.formula.bee.div <- formula(BeeDiversity | subset(Weights)~
+formula.bee.div <- formula(BeeDiversity | subset(Weights)~
                              VegDiversity +
                              TempCStart +
                              categories +
                              (1|Stand)
 )
 
-type.formula.bee.abund <- formula(BeeAbundance | subset(Weights)~
+formula.bee.abund <- formula(BeeAbundance | subset(Weights)~
                                VegAbundance +
                                TempCStart +
                                categories +
@@ -188,14 +135,14 @@ type.formula.bee.abund <- formula(BeeAbundance | subset(Weights)~
 
 
 ## hurdle models
-type.formula.bee.div.hu <- formula(hu ~
+formula.bee.div.hu <- formula(hu ~
                                 VegDiversity +
                                 TempCStart +
                                 categories +
                                 (1|Stand)
 )
 
-type.formula.bee.abund.hu <- formula(hu ~
+formula.bee.abund.hu <- formula(hu ~
                                   VegAbundance +
                                   TempCStart +
                                   categories +
@@ -211,6 +158,7 @@ xvars.coast <- c("BeeDiversity",
                  "VegDiversity",
                  "ForageDist_km",
                  "rare.degree",
+                 "categories",
                  "(1|Stand)",
                  "(1|gr(GenusSpecies, cov = phylo_matrix))"
                  )
