@@ -180,7 +180,7 @@ fit.thinned <- brm(bform, spec.net,
                   
 
 write.ms.table(fit.thinned, "thinned_canopy")
-save(fit.=thinned, spec.net, spec.orig,
+save(fit.thinned, spec.net, spec.orig,
      file="saved/thinned_canopy.Rdata")
 
 load(file="saved/thinned_canopy.Rdata")
