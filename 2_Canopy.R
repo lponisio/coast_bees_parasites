@@ -82,15 +82,15 @@ dim(spec.net)
 ## **********************************************************
 ## define all the formulas for the different parts of the models
 
-formula.flower.div <- formula(VegDiversity | subset(Weights) ~
-                                  DoyStart + I(DoyStart^2) +
+formula.flower.div <- formula(VegDiversity ~
+                                   DoyStart + I(DoyStart^2) +
                                       MeanCanopy +
                                       (1|Stand)
                               )
 
 ## flower abund with simpson div
-formula.flower.abund <- formula(VegAbundance | subset(Weights) ~
-                                    DoyStart +  I(DoyStart^2) +
+formula.flower.abund <- formula(VegAbundance ~
+                                     DoyStart +  I(DoyStart^2) +
                                         MeanCanopy +
                                         (1|Stand)
                                 )
@@ -99,14 +99,14 @@ formula.flower.abund <- formula(VegAbundance | subset(Weights) ~
 ## Model 1.2: formula for forest effects on bee community
 ## **********************************************************
 
-formula.bee.div <- formula(BeeDiversity | subset(Weights)~
+formula.bee.div <- formula(BeeDiversity ~
                                VegDiversity +
                                    TempCStart +
                                    MeanCanopy +
                                    (1|Stand)
                            )
 
-formula.bee.abund <- formula(BeeAbundance | subset(Weights)~
+formula.bee.abund <- formula(BeeAbundance~
                                  VegAbundance +
                                      TempCStart +
                                      MeanCanopy +
@@ -145,29 +145,29 @@ bform <-  bf.fdiv + bf.fabund + bf.babund + bf.bdiv +
 ## ## model assessment
 ## ## **********************************************************
 
-run_plot_freq_model_diagnostics(remove_subset_formula(formula.flower.div),
+run_plot_freq_model_diagnostics(formula.flower.div,
                                 this_data=
                                     spec.net,
                                 this_family="students")
 
-run_plot_freq_model_diagnostics(remove_subset_formula(formula.flower.abund),
+run_plot_freq_model_diagnostics(formula.flower.abund,
                                 this_data=
                                     spec.net,
                                 this_family="gaussian")
 
-run_plot_freq_model_diagnostics(remove_subset_formula(formula.bee.div),
+run_plot_freq_model_diagnostics(formula.bee.div,
                                 this_data=
                                     spec.net,
                                 this_family="hurdle_gamma")
 
-run_plot_freq_model_diagnostics(remove_subset_formula(formula.bee.abund),
+run_plot_freq_model_diagnostics(formula.bee.abund,
                                 this_data= spec.net,
                                 this_family="hurdle_gamma")
 
 ## **********************************************************
 
 ## run model with only thinned stands
-fit.bombus <- brm(bform, spec.net,
+fit.thinned <- brm(bform, spec.net,
                   cores=ncores,
                   iter = 10^4,
                   chains =3,
@@ -176,23 +176,22 @@ fit.bombus <- brm(bform, spec.net,
                   open_progress = FALSE,
                   control = list(adapt_delta = 0.999,
                                  stepsize = 0.001,
-                                 max_treedepth = 20),
-                  data2 = list(phylo_matrix=phylo_matrix)
-                  )
+                                 max_treedepth = 20))
+                  
 
-write.ms.table(fit.bombus, "Crithidia_allbee_coast")
-save(fit.bombus, spec.net, spec.orig,
-     file="saved/CrithidiaFitAllBee_coast.Rdata")
+write.ms.table(fit.thinned, "thinned_canopy")
+save(fit.=thinned, spec.net, spec.orig,
+     file="saved/thinned_canopy.Rdata")
 
-load(file="saved/CrithidiaFitAllBee_coast.Rdata")
+load(file="saved/thinned_canopy.Rdata")
 
-plot.res(fit.bombus, "Crithidia_allbee_coast")
+plot.res(fit.thinned, "thinned_canopy")
 
-summary(fit.bombus)
+summary(fit.thinned)
 
-bayes_R2(fit.bombus)
+bayes_R2(fit.thinned)
 
-plot(pp_check(fit.bombus, resp="VegDiversity", ndraws=10^3))
-plot(pp_check(fit.bombus, resp="VegAbundance", ndraws=10^3))
-plot(pp_check(fit.bombus, resp="BeeAbundance", ndraws=10^3))
-plot(pp_check(fit.bombus, resp="BeeDiversity", ndraws=10^3))
+plot(pp_check(fit.thinned, resp="VegDiversity", ndraws=10^3))
+plot(pp_check(fit.thinned, resp="VegAbundance", ndraws=10^3))
+plot(pp_check(fit.thinned, resp="BeeAbundance", ndraws=10^3))
+plot(pp_check(fit.thinned, resp="BeeDiversity", ndraws=10^3))
