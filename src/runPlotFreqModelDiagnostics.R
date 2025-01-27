@@ -100,7 +100,7 @@ run_plot_freq_model_diagnostics <- function(this_formula, #brms model formula
     } else if (this_family == 'hurdle_gamma'){
          this_model_output <- glmmTMB(this_formula, data=this_data,
                                      ziformula = ~1,
-                                     family = ziGamma())
+                                     family = ziGamma(link="log"))
         diagnostic.plots <- plot(check_model(this_model_output, panel = TRUE))
         
     } else if (this_family == 'inverse.gaussian'){
