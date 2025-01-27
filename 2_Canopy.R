@@ -19,26 +19,6 @@ source("src/runParasiteModels.R")
 source("src/standardize_weights.R")
 source("src/runPlotFreqModelDiagnostics.R")
 
-## summaries of the data used
-table(spec.net$Stand, spec.net$Year)
-table(spec.net$Year)
-
-## Load tree from : Henriquez Piskulich, Patricia Andrea; Hugall,
-## Andrew F.; Stuart-Fox, Devi (2023).  A supermatrix phylogeny of the
-## world’s bees (Hymenoptera: Anthophila) [Dataset].
-## Dryad. https://doi.org/10.5061/dryad.80gb5mkw1
-load("data/phylo.Rdata")
-
-## parasite models only inlcude bombus and only species that were
-## screened, so put NA for other species to avoid weird
-## standardization
-
-screened.bombus <- unique(spec.net$GenusSpecies[spec.net$Apidae == 1 &
-                                                spec.net$Genus == "Bombus"])
-screened.bombus <- screened.bombus[!is.na(screened.bombus)]
-spec.net$ForageDist_km[!spec.net$GenusSpecies %in% screened.bombus] <- NA
-spec.net$rare.degree[!spec.net$GenusSpecies %in% screened.bombus] <- NA
-
 ## **********************************************************
 ## formula for site effects on the bee community
 ## **********************************************************
@@ -58,12 +38,6 @@ vars_year_sr <- c(
     "VegAbundance",
     "VegDiversity")
 
-## standardize by species
-vars_sp <- c("ForageDist_km")
-
-## standardize by stand, year, species
-vars_sp_yearsr <- c("rare.degree")
-
 ## variables to log but add 1 first (due to zeros)
 variables.to.log.p1 <- c(
     "VegAbundance",
@@ -71,31 +45,37 @@ variables.to.log.p1 <- c(
     "BeeDiversity"
 )
 
-## variables to log
-variables.to.log <- c(
-    "ForageDist_km",
-    "rare.degree"
-)
+spec.net <- spec.net[spec.net$ThinStatus == "Y",]
 
-## create a dummy variable "Weight" to deal with the data sets being at
-## different levels to get around the issue of having to pass in one
-## data set into brms
-## will need to think on the transect-site-stand stituation
+spec.net <- spec.net[, c("Stand", "Year",
+                         unique(c(vars_year, vars_year_sr,
+                                variables.to.log.p1))
+                         )]
+
+spec.net$Key <- paste0(spec.net$Stand,
+                       spec.net$Year,
+                       spec.net$DoyStart)
+spec.net <- spec.net[!duplicated(spec.net$Key),]
 
 ## ********************************************************
 ## log variables here
 ## ********************************************************
-dim(spec.net)
-spec.orig <- prepDataSEM(spec.net, variables.to.log,
-                         variables.to.log.p1,
-                         standardize=FALSE)
+
+spec.orig <- prepDataSEM(spec.net, 
+                         variables.to.log.1=variables.to.log.p1,
+                         standardize=FALSE,
+                         add.par.weights=FALSE,
+                         data.is.multilevel=FALSE)
 
 ## Make SEM weights and standardize data.
-spec.net <- prepDataSEM(spec.net, variables.to.log, variables.to.log.p1,
+dim(spec.net)
+spec.net <- prepDataSEM(spec.net,
+                        variables.to.log.1= variables.to.log.p1,
                         vars_yearsr=vars_year_sr,
                         vars_year=vars_year,
-                        vars_sp=vars_sp,
-                        vars_sp_yearsr=vars_sp_yearsr)
+                        add.par.weights=FALSE,
+                        data.is.multilevel=FALSE)
+dim(spec.net)
 
 ## **********************************************************
 ## Model 1.1: formula for forest effects on floral community
@@ -150,66 +130,6 @@ formula.bee.abund.hu <- formula(hu ~
                                 )
 
 
-## **********************************************************
-## Model 1.1b: formula for forest effects on floral community in STAND TYPES
-## **********************************************************
-## define all the formulas for the different parts of the models
-
-type.formula.flower.div <- formula(VegDiversity | subset(Weights) ~
-                                DoyStart + I(DoyStart^2) +
-                                categories +
-                                (1|Stand)
-)
-
-## flower abund with simpson div
-type.formula.flower.abund <- formula(VegAbundance | subset(Weights) ~
-                                  DoyStart +  I(DoyStart^2) +
-                                  categories +
-                                  (1|Stand)
-)
-
-## **********************************************************
-## Model 1.3: formula for bee community effects on parasitism
-## **********************************************************
-
-xvars.coast <- c("BeeDiversity",
-                 "BeeAbundance",
-                 "VegDiversity",
-                 "ForageDist_km",
-                 "rare.degree",
-                 "(1|Stand)",
-                 "(1|gr(GenusSpecies, cov = phylo_matrix))"
-                 )
-
-## **********************************************************
-## Crithidia
-## **********************************************************
-## because we only screened bombus in the parasite models
-spec.net$WeightsPar[spec.net$Genus != "Bombus"] <- 0
-
-## summary stats of what is screened
-sum(spec.net$WeightsPar)
-table(spec.net$Year[spec.net$WeightsPar == 1])
-parasites <- c("ApicystisSpp", "AscosphaeraSpp",
-               "CrithidiaBombi", "CrithidiaExpoeki", "CrithidiaSpp",
-               "NosemaBombi", "NosemaCeranae")
-apply(spec.net[spec.net$WeightsPar == 1, parasites], 2, sum)
-
-table(spec.net$ParasiteRichness[spec.net$WeightsPar == 1])
-
-## the model will not run without having all the bee species in the
-## phylogeny, enough though only bombus is in the model where the
-## phylogeny is used. Setting all the non bombus species names to a
-## random bombus so that the model with run because thouse rows will
-## be dropped anyways by the parasite weights.
-
-spec.net$GenusSpecies[!spec.net$GenusSpecies %in%
-                      colnames(phylo_matrix)] <- "Bombus vosnesenskii"
-spec.net$GenusSpecies <- as.character(spec.net$GenusSpecies)
-
-formula.crithidia <-  runParasiteModels(spec.net, "bombus",
-                                        "HasCrithidia", xvars.coast)
-
 bf.fdiv <- bf(formula.flower.div, family="student")
 bf.fabund <- bf(formula.flower.abund, family = "gaussian")
 bf.bdiv <- bf(formula.bee.div, hu=formula.bee.div.hu,
@@ -218,48 +138,31 @@ bf.babund <- bf(formula.bee.abund, hu=formula.bee.abund.hu,
                 family = "hurdle_gamma")
 
 ## convert to brms format
-bf.par <- bf(formula.crithidia, family="bernoulli")
-bform <-  bf.fdiv + bf.fabund + bf.babund + bf.bdiv + bf.par +
+bform <-  bf.fdiv + bf.fabund + bf.babund + bf.bdiv +
     set_rescor(FALSE)
 
 ## ## **********************************************************
 ## ## model assessment
 ## ## **********************************************************
-## ## looks good
+
 run_plot_freq_model_diagnostics(remove_subset_formula(formula.flower.div),
                                 this_data=
-                                    spec.net[spec.net$Weights == 1,],
+                                    spec.net,
                                 this_family="students")
 
-## looks great
 run_plot_freq_model_diagnostics(remove_subset_formula(formula.flower.abund),
                                 this_data=
-                                    spec.net[spec.net$Weights == 1,],
+                                    spec.net,
                                 this_family="gaussian")
 
-## potentially an issue with homogeneity of variance, hard to say
-## because no support for checking hurdle lognormal  models (only zero
-## inflated)
 run_plot_freq_model_diagnostics(remove_subset_formula(formula.bee.div),
                                 this_data=
-                                    spec.net[spec.net$Weights == 1,],
+                                    spec.net,
                                 this_family="hurdle_gamma")
 
-## potentially an issue with homogeneity of variance, hard to say
-## because no support for checking hurdle models (only zero
-## inflated)
 run_plot_freq_model_diagnostics(remove_subset_formula(formula.bee.abund),
-                                this_data= spec.net[spec.net$Weights == 1,],
+                                this_data= spec.net,
                                 this_family="hurdle_gamma")
-
-freq.formula <- as.formula(paste("HasCrithidia",
-                                 paste(xvars.coast[-length(xvars.coast)],
-                                       collapse=" + "),
-                                 sep=" ~ "))
-run_plot_freq_model_diagnostics(freq.formula,
-                                this_data=
-                                    spec.net[spec.net$Weights == 1,],
-                                this_family="bernoulli")
 
 ## **********************************************************
 

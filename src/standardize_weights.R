@@ -77,18 +77,20 @@ prepParasiteWeights <- function(spec.data){
 
 
 prepDataSEM <-
-    function(spec.data,#individual level specimen data
-             variables.to.log = NULL, #variables to be logged
-             variables.to.log.1 = NULL, #variables to be logged + 1
-             vars_yearsr = NULL,#variables to standardize at year site
+  function(spec.data,#individual level specimen data
+           variables.to.log = NULL, #variables to be logged
+           variables.to.log.1 = NULL, #variables to be logged + 1
+           vars_yearsr = NULL,#variables to standardize at year site
                                         #sampling round level
-             vars_year = NULL,#variables to standardize at year site sampling round level 
-             vars_sp = NULL,  #variables to standardize at the species
+           vars_year = NULL,#variables to standardize at year site sampling round level 
+           vars_sp = NULL,  #variables to standardize at the species
                                         #level
-             vars_sp_yearsr= NULL, #variables to standardize at the
+           vars_sp_yearsr= NULL, #variables to standardize at the
                                         #species level
-             standardize=TRUE)
-{
+           standardize=TRUE,
+           add.par.weights=TRUE,
+           data.is.multilevel=TRUE){
+
     ## Function for making the SEM weights and standarizing variables.
     spec.data <- spec.data[order(spec.data$Stand), ]
     
@@ -96,64 +98,66 @@ prepDataSEM <-
     ## different levels to get around the issue of having to pass in one
     ## data set into brms
     spec.data$YearSR <-
-        paste(spec.data$Year, spec.data$DoyStart, sep = ";")
+      paste(spec.data$Year, spec.data$DoyStart, sep = ";")
 
-    ## species, year, SR key
-    spec.data$YearSRGenusSpecies <-
+    if(!is.null(spec.data$GenusSpecies)){
+      ## species, year, SR key
+      spec.data$YearSRGenusSpecies <-
         paste(spec.data$Year, spec.data$DoyStart, spec.data$GenusSpecies, sep = ";")
-    
-    print("Number of unique stand, year, sampling round combinations")
-    print(length(unique(paste(spec.data$Stand, spec.data$YearSR))))
-    spec.data <- makeDataMultiLevel(spec.data, "Stand", "YearSR")
-    print("Number of individuals with Weights == 1, should be the same as above")
-    print(sum(spec.data$Weights))
-
+    }
+    if(data.is.multilevel){
+      print("Number of unique stand, year, sampling round combinations")
+      print(length(unique(paste(spec.data$Stand, spec.data$YearSR))))
+      spec.data <- makeDataMultiLevel(spec.data, "Stand", "YearSR")
+      print("Number of individuals with Weights == 1, should be the same as above")
+      print(sum(spec.data$Weights))
+    }
     ## log variables before standardizing
     if(!is.null(variables.to.log)){
-        spec.data[, variables.to.log] <-
-            log(spec.data[, variables.to.log])
+      spec.data[, variables.to.log] <-
+        log(spec.data[, variables.to.log])
     }
     if(!is.null(variables.to.log.1)){
-        spec.data[, variables.to.log.1] <-
-            log(spec.data[, variables.to.log.1]+ 1)
+      spec.data[, variables.to.log.1] <-
+        log(spec.data[, variables.to.log.1]+ 1)
     }
     
     ##  center all of the x variables, need to use unique values to avoid
     ##  repetition by the number of specimens
 
     if(standardize){
-        if(!is.null(vars_yearsr)){
-            print("Standardizing variables with year, sampling round, stand combinations")
-            spec.data <- standardizeVars(spec.data, vars_yearsr, "YearSR")
-        }
-        if(!is.null(vars_sp)){
-            print("Standardizing variables by species")
-            spec.data <-
-                standardizeVars(spec.data, vars_sp, "GenusSpecies", by.stand=FALSE)
-        }
-        if(!is.null(vars_year)){
-            print("Standardizing variables with year, stand combinations")
-            spec.data <- standardizeVars(spec.data, vars_year, "Year")
-        }
+      if(!is.null(vars_yearsr)){
+        print("Standardizing variables with year, sampling round, stand combinations")
+        spec.data <- standardizeVars(spec.data, vars_yearsr, "YearSR")
+      }
+      if(!is.null(vars_sp)){
+        print("Standardizing variables by species")
+        spec.data <-
+          standardizeVars(spec.data, vars_sp, "GenusSpecies", by.stand=FALSE)
+      }
+      if(!is.null(vars_year)){
+        print("Standardizing variables with year, stand combinations")
+        spec.data <- standardizeVars(spec.data, vars_year, "Year")
+      }
 
-        if(!is.null(vars_sp_yearsr)){
-            print("Standardizing variables with year, sampling round, stand, species combinations")
-            spec.data <- standardizeVars(spec.data, vars_sp_yearsr, "YearSRGenusSpecies")
-        }
+      if(!is.null(vars_sp_yearsr)){
+        print("Standardizing variables with year, sampling round, stand, species combinations")
+        spec.data <- standardizeVars(spec.data, vars_sp_yearsr, "YearSRGenusSpecies")
+      }
 
     }
     
     ## create a dumby varaible "WeightPar" for the parasite data. The
     ## original intention was to keep stan from dropping data for
     ## site-level models, but weight is 0 for parasite models.
-    
-    print("Number of successful parasite screenings")
-    print(sum(spec.data$Apidae, na.rm = TRUE))
-    spec.data <- prepParasiteWeights(spec.data)
-    print("Number of of individuals with WeightsPar == 1, should be the same as above")
-    print(sum(spec.data$WeightsPar))
-    print("Final dim of data after adding WeightsPar")
-    print(dim(spec.data))
-    
+    if(add.par.weights){
+      print("Number of successful parasite screenings")
+      print(sum(spec.data$Apidae, na.rm = TRUE))
+      spec.data <- prepParasiteWeights(spec.data)
+      print("Number of of individuals with WeightsPar == 1, should be the same as above")
+      print(sum(spec.data$WeightsPar))
+      print("Final dim of data after adding WeightsPar")
+      print(dim(spec.data))
+    }
     return(spec.data)
-}
+  }
