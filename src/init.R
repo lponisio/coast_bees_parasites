@@ -63,3 +63,16 @@ spec.net$categories <- with(spec.net,
             spec.net$DomTreeDiam_cm > 60, "Mature",
       "Other")))))
 
+#Drop NA and Other - stands that are unthinned and mid-aged or don't
+#have thin/dbh data
+
+spec.net <- spec.net %>%
+  filter(!is.na(categories) & categories != "Other")
+
+spec.net$categories <-
+  factor(spec.net$categories, levels = c("Recent harvest",
+                                         "Thin 1",
+                                         "Thin 2",
+                                         "Mature"))
+
+

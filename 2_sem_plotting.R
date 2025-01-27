@@ -21,32 +21,6 @@ source("src/misc.R")
 
 load("data/spec_net_coast.Rdata")
 
-#bins: young stands 0-20, thins 20-40, thins 40-60, non thinned old
-spec.net$categories <- with(spec.net, 
-                      ifelse(spec.net$ThinStatus == "N" & 
-                               spec.net$DomTreeDiam_cm <= 20, "Recent harvest",
-                      ifelse(spec.net$ThinStatus == "Y" & 
-                               spec.net$DomTreeDiam_cm > 20 & 
-                               spec.net$DomTreeDiam_cm <= 40, "Thin 1",
-                      ifelse(spec.net$ThinStatus == "Y" & 
-                               spec.net$DomTreeDiam_cm > 40 & 
-                               spec.net$DomTreeDiam_cm <= 60, "Thin 2",
-                      ifelse(spec.net$ThinStatus == "N" & 
-                               spec.net$DomTreeDiam_cm > 60, "Mature",
-                      "Other")))))
-
-##Drop NA and Other - stands that are unthinned and mid-aged or don't 
-##have thin/dbh data 
-
-spec.net <- spec.net %>%
-  filter(!is.na(categories) & categories != "Other")
-
-spec.net$categories <- 
-  factor(spec.net$categories, levels = c("Recent harvest", 
-                                         "Thin 1",
-                                         "Thin 2", 
-                                         "Mature"))
-
 box1 <- ggplot(spec.net, aes(x = categories, y = log(VegAbundance))) +
   geom_boxplot() +
   labs(x = "Stand type", 
