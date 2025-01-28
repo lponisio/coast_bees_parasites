@@ -9,80 +9,61 @@ source("src/misc.R")
 ## stand type boxplots
 ## ***********************************************************************
 
-box1 <- ggplot(spec.net, aes(x = categories, y = log(VegAbundance))) +
+spec.net <- spec.net[!is.na(spec.net$categories),]
+
+VAbox <- ggplot(spec.net, aes(x = categories, y = log(VegAbundance))) +
   geom_boxplot() +
   labs(x = "Stand type", 
        y = "Flowering plant abundance (log)") +
   theme_classic()
 
-box2 <- ggplot(spec.net, aes(x = categories, y = VegDiversity)) +
+VDbox <- ggplot(spec.net, aes(x = categories, y = VegDiversity)) +
   geom_boxplot() +
   labs(x = "Stand type", 
        y = "Flowering plant diversity") +
   theme_classic()
 
-box3 <- ggplot(spec.net, aes(x = categories, y = BeeAbundance)) +
+BAbox <- ggplot(spec.net, aes(x = categories, y = BeeAbundance)) +
   geom_boxplot() +
   labs(x = "Stand type", 
        y = "Bee abundance") +
   theme_classic()
 
-box4 <- ggplot(spec.net, aes(x = categories, y = BeeDiversity)) +
+BDbox <- ggplot(spec.net, aes(x = categories, y = BeeDiversity)) +
   geom_boxplot() +
   labs(x = "Stand type", 
        y = "Bee diversity") +
   theme_classic()
 
-all.box <- ggarrange(box1, box2, box3, box4,
+all.box <- ggarrange(VAbox, VDbox, BAbox, BDbox,
                      nrow=2, ncol=2, labels = c("A", "B", "C", "D"),
                      common.legend = TRUE, legend="bottom")
+
+all.box
 
 ggsave(all.box, file="figures/boxplots.pdf", height=7, width=10)
 
 ## ***********************************************************************
 ## descriptive bar charts
-## ***********************************************************************
-
-## binning canopy - remember that canopy is unintuitive and 0-25 is lowest
-# spec.net$CanopyBin <- cut(spec.net$MeanCanopy,
-#                      breaks = c(0, 25, 75, 100),
-#                      include.lowest = T, right = F)
-
-## veg abundance summary
-spec.net <- spec.net[!is.na(spec.net$categories),]
-spec.net.2 <- spec.net %>%
-  filter(ThinStatus == 'N')
 
 vegstats <- spec.net %>%
   group_by(categories) %>%
   summarise(meanveg =mean(VegDiversity),
             sdveg = sd(VegDiversity))
-
 vegstats2 <- spec.net %>%
   group_by(categories) %>%
   summarise(meanveg =mean(VegAbundance),
             sdveg = sd(VegAbundance))
 
 ## bee diversity summary by canopy type
-stats <- spec.net %>%
-  group_by(categories) %>%
-  summarise(meanbee =mean(BeeDiversity),
-            sdbee = sd(BeeDiversity))
-
 beestats <- spec.net %>%
   group_by(categories) %>%
   summarise(meanbee =mean(BeeAbundance),
             sdbee = sd(BeeAbundance))
-
 beestats2 <- spec.net %>%
   group_by(categories) %>%
   summarise(meanbee =mean(BeeDiversity),
             sdbee = sd(BeeDiversity))
-
-# ## per canopy type mean and sd of veg abund/diversity
-# closed <- spec.net[spec.net$CanopyBin %in% c("[0,25)"),]
-# intermed <- spec.net[spec.net$CanopyBin %in% c("[25,75)"),]
-# open <- spec.net[spec.net$CanopyBin %in% c("[75,100]"),]
 
 ## ***********************************************************************
 ## all bee genus bar graph
@@ -109,7 +90,8 @@ bee.spp.bar <- ggplot(summary,
            aes(fill = factor(categories)), position = "dodge") +
   scale_fill_manual(values=c('lightblue', '#FFC107', 'darkorange', '#004D40'),
                     name = "Canopy type",
-                    labels=c('Recent harvest', 'Thin 1', 'Thin 2', 'Mature')) +
+                    labels=c('Recent harvest', 'Younger thin', 
+                             'Older thin', 'Mature')) +
   theme_classic() +
   theme(legend.position = "top",
         axis.text.y = element_text(angle = 0, hjust = 1,
@@ -151,7 +133,8 @@ plant.bar <- ggplot(summary,
            aes(fill = factor(categories)), position = "dodge") +
   scale_fill_manual(values=c('lightblue', '#FFC107', 'darkorange', '#004D40'),
                     name = "Canopy type",
-                    labels=c('Recent harvest', 'Thin 1', 'Thin 2', 'Mature')) +
+                    labels=c('Recent harvest', 'Younger thin', 
+                             'Older thin', 'Mature')) +
   theme_classic() +
   theme(legend.position = "top",
         axis.text.y = element_text(angle = 0, hjust = 1,
