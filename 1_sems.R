@@ -40,18 +40,6 @@ spec.net$ForageDist_km[!spec.net$GenusSpecies %in% screened.bombus] <- NA
 spec.net$rare.degree[!spec.net$GenusSpecies %in% screened.bombus] <- NA
 
 
-##Drop NA and Other - stands that are unthinned and mid-aged or don't 
-##have thin/dbh data 
-# 
-# spec.net <- spec.net %>%
-#   filter(!is.na(categories) & categories != "Other")
-# 
-# spec.net$categories <- 
-#   factor(spec.net$categories, levels = c("Recent harvest", 
-#                                          "Thin 1",
-#                                          "Thin 2", 
-#                                          "Mature"))
-
 ## **********************************************************
 ## formula for site effects on the bee community
 ## **********************************************************
