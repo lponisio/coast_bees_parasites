@@ -61,9 +61,6 @@ spec.net$rare.degree[!spec.net$GenusSpecies %in% screened.bombus] <- NA
 ## at the indivudal-level for the parasite model, we need to carefully
 ## standardize the data at the correct level.
 
-## ## standardize by stand, year
-## vars_year <- c("MeanCanopy")
-
 ## standardize by stand, year, and sample round
 vars_year_sr <- c(
     "DoyStart",
@@ -106,7 +103,6 @@ spec.orig <- prepDataSEM(spec.net, variables.to.log,
 ## Make SEM weights and standardize data.
 spec.net <- prepDataSEM(spec.net, variables.to.log, variables.to.log.p1,
                         vars_yearsr=vars_year_sr,
-                        ## vars_year=vars_year,
                         vars_sp=vars_sp,
                         vars_sp_yearsr=vars_sp_yearsr)
 
@@ -171,7 +167,6 @@ xvars.coast <- c("BeeDiversity",
                  "VegDiversity",
                  "ForageDist_km",
                  "rare.degree",
-                 "categories",
                  "(1|Stand)",
                  "(1|gr(GenusSpecies, cov = phylo_matrix))"
                  )
@@ -190,8 +185,6 @@ parasites <- c("ApicystisSpp", "AscosphaeraSpp",
                "NosemaBombi", "NosemaCeranae")
 apply(spec.net[spec.net$WeightsPar == 1, parasites], 2, sum)
 
-table(spec.net$ParasiteRichness[spec.net$WeightsPar == 1])
-
 ## the model will not run without having all the bee species in the
 ## phylogeny, enough though only bombus is in the model where the
 ## phylogeny is used. Setting all the non bombus species names to a
@@ -203,7 +196,7 @@ spec.net$GenusSpecies[!spec.net$GenusSpecies %in%
 spec.net$GenusSpecies <- as.character(spec.net$GenusSpecies)
 
 formula.crithidia <-  runParasiteModels(spec.net, "bombus",
-                                        "HasCrithidia", xvars.coast)
+                                        "CrithidiaPresence", xvars.coast)
 
 bf.fdiv <- bf(formula.flower.div, family="student")
 bf.fabund <- bf(formula.flower.abund, family = "gaussian")
@@ -247,7 +240,7 @@ run_plot_freq_model_diagnostics(remove_subset_formula(formula.bee.abund),
                                 this_data= spec.net[spec.net$Weights == 1,],
                                 this_family="hurdle_gamma")
 
-freq.formula <- as.formula(paste("HasCrithidia",
+freq.formula <- as.formula(paste("CrithidiaPresence",
                                  paste(xvars.coast[-length(xvars.coast)],
                                        collapse=" + "),
                                  sep=" ~ "))
