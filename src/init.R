@@ -45,21 +45,21 @@ if(!dir.exists(fig.dir2)) {
   dir.create(fig.dir2, showWarnings = FALSE)
 }
 
-##binning stand categories
+#binning stand categories
 
 load("data/spec_net_coast.Rdata")
 
 #bins: young stands 0-20, thins 20-40, thins 40-60, non thinned old
-spec.net$categories <- with(spec.net, 
-      ifelse(spec.net$ThinStatus == "N" & 
+spec.net$categories <- with(spec.net,
+      ifelse(spec.net$ThinStatus == "N" &
             spec.net$DomTreeDiam_cm <= 20, "Recent harvest",
-      ifelse(spec.net$ThinStatus == "Y" & 
-            spec.net$DomTreeDiam_cm > 20 & 
-            spec.net$DomTreeDiam_cm <= 40, "Thin 1",
-      ifelse(spec.net$ThinStatus == "Y" & 
-            spec.net$DomTreeDiam_cm > 40 & 
-            spec.net$DomTreeDiam_cm <= 60, "Thin 2",
-      ifelse(spec.net$ThinStatus == "N" & 
+      ifelse(spec.net$ThinStatus == "Y" &
+            spec.net$DomTreeDiam_cm > 20 &
+            spec.net$DomTreeDiam_cm <= 40, "Younger thin",
+      ifelse(spec.net$ThinStatus == "Y" &
+            spec.net$DomTreeDiam_cm > 40 &
+            spec.net$DomTreeDiam_cm <= 60, "Older thin",
+      ifelse(spec.net$ThinStatus == "N" &
             spec.net$DomTreeDiam_cm > 60, "Mature",
       "Other")))))
 
@@ -71,8 +71,8 @@ spec.net <- spec.net %>%
 
 spec.net$categories <-
   factor(spec.net$categories, levels = c("Recent harvest",
-                                         "Thin 1",
-                                         "Thin 2",
+                                         "Younger thin",
+                                         "Older thin",
                                          "Mature"))
 
 
