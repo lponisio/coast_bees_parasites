@@ -67,9 +67,8 @@ prepParasiteWeights <- function(spec.data){
                          is.na(spec.data$Apidae)] <- 0
     ## stan drops all NA data, so can set AnyParasite to 0 with WeightsPar
     ## to keep it in the models
-    spec.data$ParasitePresence[is.na(spec.data$ParasitePresence)] <- 0
     spec.data$CrithidiaBombi[is.na(spec.data$CrithidiaBombi)] <- 0
-    spec.data$HasCrithidia[is.na(spec.data$HasCrithidia)] <- 0
+    spec.data$CrithidiaPresence[is.na(spec.data$CrithidiaPresence)] <- 0
     spec.data$ApicystisSpp[is.na(spec.data$ApicystisSpp)] <- 0
     spec.data$Year <- as.factor(spec.data$Year)
     return(spec.data)
