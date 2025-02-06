@@ -271,8 +271,8 @@ crithidia.foraging.dist.p <-
     geom_ribbon(aes(ymin = lower__, ymax = upper__,
                     alpha=0.3)) +
     scale_fill_manual(values = c("dodgerblue")) +
-    labs(x = "Foraging distance (log km)", y = "Crithidia prevalence",
-         fill = "Credible interval") +
+   labs(x =  expression("Foraging distance (log km)"),
+   y = expression("" * italic("Crithidia") * " prevalence ")) +
     theme_ms() +
     theme(legend.position = "none") +
     scale_x_continuous(
