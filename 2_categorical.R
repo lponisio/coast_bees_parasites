@@ -1,35 +1,52 @@
-setwd("/coast_bees_parasites")
+#setwd("/coast_bees_parasites")
 
 rm(list=ls())
+
+
 source("src/ggplotThemes.R")
 source("src/init.R")
 source("src/misc.R")
 
+spec.net <- spec.net %>%
+  filter(Order == "Hymenoptera")
+# 
+# unique_bee <- beetable %>%
+#   group_by(PlantGenusSpecies) %>%
+#   summarise(count = n()) %>%
+#   arrange(desc(count))
+
 ## ***********************************************************************
 ## stand type boxplots
 ## ***********************************************************************
-
+##these are wrong need to be unique stand/round/yr combos and not from spec net 
 spec.net <- spec.net[!is.na(spec.net$categories),]
+u_stand <- unique(spec.net[, c("Stand", "Round", "Year", 
+                               "VegAbundance", "VegDiversity",
+                               "BeeAbundance", "BeeDiversity")])
+u_stand <- u_stand %>%
+  left_join(spec.net %>%
+              select("Stand", "categories") %>%
+              distinct(), by = "Stand")
 
-VAbox <- ggplot(spec.net, aes(x = categories, y = log(VegAbundance))) +
+VAbox <- ggplot(u_stand, aes(x = categories, y = VegAbundance)) +
   geom_boxplot() +
   labs(x = "Stand type", 
        y = "Flowering plant abundance (log)") +
   theme_classic()
 
-VDbox <- ggplot(spec.net, aes(x = categories, y = VegDiversity)) +
+VDbox <- ggplot(u_stand, aes(x = categories, y = VegDiversity)) +
   geom_boxplot() +
   labs(x = "Stand type", 
        y = "Flowering plant diversity") +
   theme_classic()
 
-BAbox <- ggplot(spec.net, aes(x = categories, y = BeeAbundance)) +
+BAbox <- ggplot(u_stand, aes(x = categories, y = BeeAbundance)) +
   geom_boxplot() +
   labs(x = "Stand type", 
        y = "Bee abundance") +
   theme_classic()
 
-BDbox <- ggplot(spec.net, aes(x = categories, y = BeeDiversity)) +
+BDbox <- ggplot(u_stand, aes(x = categories, y = BeeDiversity)) +
   geom_boxplot() +
   labs(x = "Stand type", 
        y = "Bee diversity") +
@@ -43,24 +60,22 @@ all.box
 
 ggsave(all.box, file="figures/boxplots.pdf", height=7, width=10)
 
-## ***********************************************************************
-## descriptive bar charts
-
-vegstats <- spec.net %>%
+##statistics to report
+vegstats <- u_stand %>%
   group_by(categories) %>%
   summarise(meanveg =mean(VegDiversity),
             sdveg = sd(VegDiversity))
-vegstats2 <- spec.net %>%
+vegstats2 <- u_stand %>%
   group_by(categories) %>%
   summarise(meanveg =mean(VegAbundance),
             sdveg = sd(VegAbundance))
 
 ## bee diversity summary by canopy type
-beestats <- spec.net %>%
+beestats <- u_stand %>%
   group_by(categories) %>%
   summarise(meanbee =mean(BeeAbundance),
             sdbee = sd(BeeAbundance))
-beestats2 <- spec.net %>%
+beestats2 <- u_stand %>%
   group_by(categories) %>%
   summarise(meanbee =mean(BeeDiversity),
             sdbee = sd(BeeDiversity))
@@ -87,7 +102,8 @@ bee.spp.bar <- ggplot(summary,
                       aes(y = fct_reorder(Genus, avg, .desc = TRUE),
                           x = avg)) +
   geom_bar(stat = 'identity',
-           aes(fill = factor(categories)), position = "dodge") +
+           aes(fill = factor(categories)), 
+           position = position_dodge(preserve = "single")) +
   scale_fill_manual(values=c('lightblue', '#FFC107', 'darkorange', '#004D40'),
                     name = "Canopy type",
                     labels=c('Recent harvest', 'Younger thin', 
@@ -130,7 +146,8 @@ plant.bar <- ggplot(summary,
                     aes(y = fct_reorder(PlantGenusSpecies, avg, .desc = TRUE),
                         x = avg)) +
   geom_bar(stat = 'identity',
-           aes(fill = factor(categories)), position = "dodge") +
+           aes(fill = factor(categories)), 
+           position = position_dodge(preserve = "single")) +
   scale_fill_manual(values=c('lightblue', '#FFC107', 'darkorange', '#004D40'),
                     name = "Canopy type",
                     labels=c('Recent harvest', 'Younger thin', 
@@ -173,7 +190,8 @@ bombus.spp.bar <- ggplot(bombsummary,
                          aes(y = fct_reorder(GenusSpecies, avg, .desc = TRUE),
                              x = avg)) +
   geom_bar(stat = 'identity',
-           aes(fill = factor(categories)), position = "dodge",
+           aes(fill = factor(categories)), 
+           position = position_dodge(preserve = "single"),
            show.legend = F) + 
   scale_fill_manual(values=c('lightblue', '#FFC107', 'darkorange', '#004D40')) +
   theme_classic() +
@@ -194,8 +212,8 @@ parasite.count.table <- spec.net %>%
   filter(Apidae == 1, Genus == "Bombus") %>%
   select(SpecimenID, ApicystisSpp, AscosphaeraSpp, CrithidiaBombi,
          CrithidiaExpoeki,
-         CrithidiaSpp, NosemaBombi, NosemaCeranae, ParasitePresence,
-         ParasiteRichness,
+         CrithidiaSpp, NosemaBombi, NosemaCeranae, #ParasitePresence,
+         #ParasiteRichness,
          categories) %>%
   pivot_longer(cols=c(ApicystisSpp, AscosphaeraSpp, CrithidiaBombi,
                       CrithidiaSpp, CrithidiaExpoeki, NosemaCeranae,
@@ -238,4 +256,4 @@ summaries <- ggarrange(left.col,
 )
 
 ggsave(summaries, file="figures/summaries.pdf",
-       height=9, width=11)
+       height=9, width=14)
