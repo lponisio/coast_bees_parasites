@@ -289,27 +289,24 @@ ggsave(crithidia.foraging.dist.p, file="figures/crithidia_foragingdis.pdf",
        height=5, width=5)
 
 
-## ***********************************************************************
-## scatterplot of canopy cover and dbh, highlighting thins
-## ***********************************************************************
-# 
-# stands <- spec.orig[!duplicated(spec.orig$StandRoundYear), ]
-# 
-# standsplot <- stands %>%
-#   ggplot(aes(x=DomTreeDiam_cm, y=MeanCanopy, color=ThinStatus)) +
-#   geom_point() +
-#   scale_color_manual(values = c("Y" = "#999999", "N" = "black"),
-#                      labels=c('Not thinned', 'Thinned'),
-#                      name="Management history") +
-#   labs(x="Dominant tree class DBH (cm)", y="Canopy openness") +
-#   xlim(0,75) +
-#   theme_classic()+
-#   theme(
-#     axis.text.x = element_text(color="black"),
-#     axis.text.y = element_text(color="black"),
-#     axis.ticks = element_line(color = "black"))
-# 
-# standsplot
-# 
-# ggsave(standsplot, file="figures/canopyDBH.pdf",
-#        height=2, width=4)
+# ***********************************************************************
+# scatterplot of canopy cover and dbh, highlighting thins
+# ***********************************************************************
+
+stands <- spec.orig[!duplicated(spec.orig$StandRoundYear), ]
+
+standsplot <- stands %>%
+  ggplot(aes(x=DomTreeDiam_cm, y=MeanCanopy, color=ThinStatus)) +
+  geom_point() +
+  labs(x="Dominant tree class DBH (cm)", y="Canopy openness") +
+  xlim(20,60) +
+  theme_classic()+
+  theme(
+    axis.text.x = element_text(color="black"),
+    axis.text.y = element_text(color="black"),
+    axis.ticks = element_line(color = "black"))
+
+standsplot
+
+ggsave(standsplot, file="figures/canopyDBH.pdf",
+       height=2, width=4)
