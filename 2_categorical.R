@@ -18,7 +18,6 @@ spec.net <- spec.net %>%
 ## ***********************************************************************
 ## stand type boxplots
 ## ***********************************************************************
-##these are wrong need to be unique stand/round/yr combos and not from spec net 
 spec.net <- spec.net[!is.na(spec.net$categories),]
 u_stand <- unique(spec.net[, c("Stand", "Round", "Year", 
                                "VegAbundance", "VegDiversity",
@@ -28,7 +27,7 @@ u_stand <- u_stand %>%
               select("Stand", "categories") %>%
               distinct(), by = "Stand")
 
-VAbox <- ggplot(u_stand, aes(x = categories, y = VegAbundance)) +
+VAbox <- ggplot(u_stand, aes(x = categories, y = log(VegAbundance))) +
   geom_boxplot() +
   labs(x = "Stand type", 
        y = "Flowering plant abundance (log)") +
