@@ -52,15 +52,15 @@ load("data/spec_net_coast.Rdata")
 #bins: young stands 0-20, thins 20-40, thins 40-60, non thinned old
 spec.net$categories <- with(spec.net,
       ifelse(spec.net$ThinStatus == "N" &
-            spec.net$DomTreeDiam_cm <= 20, "Recent harvest",
+            spec.net$DomTreeDiam_cm <= 20, "Early seral (0-20cm]",
       ifelse(spec.net$ThinStatus == "Y" &
             spec.net$DomTreeDiam_cm > 20 &
-            spec.net$DomTreeDiam_cm <= 40, "Younger thin",
+            spec.net$DomTreeDiam_cm <= 40, "Mid-seral thinned (20-40cm]",
       ifelse(spec.net$ThinStatus == "Y" &
             spec.net$DomTreeDiam_cm > 40 &
-            spec.net$DomTreeDiam_cm <= 60, "Older thin",
+            spec.net$DomTreeDiam_cm <= 60, "Mid-seral thinned (40-60cm]",
       ifelse(spec.net$ThinStatus == "N" &
-            spec.net$DomTreeDiam_cm > 60, "Mature",
+            spec.net$DomTreeDiam_cm > 60, "Mature (60+ cm)",
       "Other")))))
 
 #Drop NA and Other - stands that are unthinned and mid-aged or don't
@@ -70,9 +70,9 @@ spec.net <- spec.net %>%
   filter(!is.na(categories) & categories != "Other")
 
 spec.net$categories <-
-  factor(spec.net$categories, levels = c("Recent harvest",
-                                         "Younger thin",
-                                         "Older thin",
-                                         "Mature"))
+  factor(spec.net$categories, levels = c("Early seral (0-20cm]",
+                                         "Mid-seral thinned (20-40cm]",
+                                         "Mid-seral thinned (40-60cm]",
+                                         "Mature (60+ cm)"))
 
 
