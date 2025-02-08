@@ -19,6 +19,7 @@ spec.net <- spec.net %>%
 ## stand type boxplots
 ## ***********************************************************************
 spec.net <- spec.net[!is.na(spec.net$categories),]
+
 u_stand <- unique(spec.net[, c("Stand", "Round", "Year", 
                                "VegAbundance", "VegDiversity",
                                "BeeAbundance", "BeeDiversity")])
@@ -27,26 +28,36 @@ u_stand <- u_stand %>%
               select("Stand", "categories") %>%
               distinct(), by = "Stand")
 
-VAbox <- ggplot(u_stand, aes(x = categories, y = log(VegAbundance))) +
+VAbox <- ggplot(u_stand, aes(x = categories, y = VegAbundance)) +
   geom_boxplot() +
+  scale_x_discrete(labels = function(categories) 
+    str_wrap(categories, width = 10)) +
   labs(x = "Stand type", 
-       y = "Flowering plant abundance (log)") +
+       y = "Flowering plant abundance") +
   theme_classic()
+
+VAbox
 
 VDbox <- ggplot(u_stand, aes(x = categories, y = VegDiversity)) +
   geom_boxplot() +
+  scale_x_discrete(labels = function(categories) 
+    str_wrap(categories, width = 10)) +
   labs(x = "Stand type", 
        y = "Flowering plant diversity") +
   theme_classic()
 
 BAbox <- ggplot(u_stand, aes(x = categories, y = BeeAbundance)) +
   geom_boxplot() +
+  scale_x_discrete(labels = function(categories) 
+    str_wrap(categories, width = 10)) +
   labs(x = "Stand type", 
        y = "Bee abundance") +
   theme_classic()
 
 BDbox <- ggplot(u_stand, aes(x = categories, y = BeeDiversity)) +
   geom_boxplot() +
+  scale_x_discrete(labels = function(categories) 
+    str_wrap(categories, width = 10)) +
   labs(x = "Stand type", 
        y = "Bee diversity") +
   theme_classic()
@@ -57,7 +68,7 @@ all.box <- ggarrange(VAbox, VDbox, BAbox, BDbox,
 
 all.box
 
-ggsave(all.box, file="figures/boxplots.pdf", height=7, width=10)
+ggsave(all.box, file="figures/boxplots.pdf", height=8, width=11)
 
 ##statistics to report
 vegstats <- u_stand %>%
@@ -105,8 +116,8 @@ bee.spp.bar <- ggplot(summary,
            position = position_dodge(preserve = "single")) +
   scale_fill_manual(values=c('lightblue', '#FFC107', 'darkorange', '#004D40'),
                     name = "Canopy type",
-                    labels=c('Recent harvest', 'Younger thin', 
-                             'Older thin', 'Mature')) +
+                    labels=c('Recent harvest', 'Thin (20-40]', 
+                             'Thin (40-60]', 'Mature')) +
   theme_classic() +
   theme(legend.position = "top",
         axis.text.y = element_text(angle = 0, hjust = 1,
@@ -149,8 +160,8 @@ plant.bar <- ggplot(summary,
            position = position_dodge(preserve = "single")) +
   scale_fill_manual(values=c('lightblue', '#FFC107', 'darkorange', '#004D40'),
                     name = "Canopy type",
-                    labels=c('Recent harvest', 'Younger thin', 
-                             'Older thin', 'Mature')) +
+                    labels=c('Recent harvest', 'Thin (20-40]', 
+                             'Thin (40-60]', 'Mature')) +
   theme_classic() +
   theme(legend.position = "top",
         axis.text.y = element_text(angle = 0, hjust = 1,
@@ -255,4 +266,4 @@ summaries <- ggarrange(left.col,
 )
 
 ggsave(summaries, file="figures/summaries.pdf",
-       height=9, width=14)
+       height=9, width=15)
