@@ -19,7 +19,10 @@ source("src/misc.R")
 ## prepping for newdata draws
 ## ***********************************************************************
 ## load model results and data
-load(file="saved/CrithidiaFitAllBee_coast.Rdata")
+#load(file="saved/CrithidiaFitAllBee_coast.Rdata")
+
+#should be this model actually
+load(file="saved/thinned_canopy.Rdata")
 
 ## log + 1  Veg abundance, Bee diversity and bee abundance
 ## log "ForageDist_km", "rare.degree"
@@ -84,10 +87,8 @@ vdiv <-
 
 vdiv.stand <- ggplot(vdiv, aes(x = MeanCanopy,
                                y = estimate__)) +
-    geom_line(aes(x = MeanCanopy, y=estimate__ 
-                  #,
-                  #color = ThinStatus, linetype = ThinStatus
-                  ), size=1.5) +
+    geom_line(aes(x = MeanCanopy, y=estimate__,
+                  ), size=1.5, linetype = "dashed") +
     geom_ribbon(aes(ymin = lower__, ymax = upper__, 
                     #fill=ThinStatus,
                     alpha=0.3)) +
@@ -134,7 +135,7 @@ vabund.stand <- ggplot(vabund, aes(x = MeanCanopy,
                aes(x=MeanCanopy, y=VegAbundance), cex=2) +
     geom_point(data=new.net,
                aes(x=MeanCanopy, y=VegAbundance), cex=2, pch=1) +
-    labs(x = "", y = "Floral abundance (log)",
+    labs(x = "", y = "Floral abundance",
          fill = "95% credible interval") +
     theme_ms() +
     scale_x_continuous(
@@ -160,7 +161,8 @@ bdiv <-
 
 bdiv.stand <- ggplot(bdiv, aes(x = MeanCanopy,
                                y = estimate__)) +
-    geom_line(aes(x = MeanCanopy, y=estimate__), size=1.5) +
+    geom_line(aes(x = MeanCanopy, y=estimate__), size=1.5,
+              linetype = "dashed") +
     geom_ribbon(aes(ymin = lower__, ymax = upper__, 
                     alpha=0.3)) +
     geom_point(data=new.net,
@@ -190,7 +192,8 @@ babund <-
 
 babund.stand <- ggplot(babund, aes(x = MeanCanopy,
                                    y = estimate__)) +
-    geom_line(aes(x = MeanCanopy, y=estimate__, size=1.5)) +
+  geom_line(aes(x = MeanCanopy, y=estimate__), size=1.5,
+            linetype = "dashed") +
     geom_ribbon(aes(ymin = lower__, ymax = upper__, 
                     alpha=0.3)) +
     scale_color_manual(values = c("black", "#999999")) +
@@ -296,7 +299,7 @@ ggsave(crithidia.foraging.dist.p, file="figures/crithidia_foragingdis.pdf",
 stands <- spec.orig[!duplicated(spec.orig$StandRoundYear), ]
 
 standsplot <- stands %>%
-  ggplot(aes(x=DomTreeDiam_cm, y=MeanCanopy, color=ThinStatus)) +
+  ggplot(aes(x=DomTreeDiam_cm, y=MeanCanopy)) +
   geom_point() +
   labs(x="Dominant tree class DBH (cm)", y="Canopy openness") +
   xlim(20,60) +
@@ -309,4 +312,4 @@ standsplot <- stands %>%
 standsplot
 
 ggsave(standsplot, file="figures/canopyDBH.pdf",
-       height=2, width=4)
+       height=3, width=4)
